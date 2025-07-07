@@ -1,0 +1,3 @@
+/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/market_data_feed.dir
+/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/edit_cache.dir
+/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/rebuild_cache.dir
