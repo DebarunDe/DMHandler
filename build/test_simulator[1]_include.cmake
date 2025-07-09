@@ -1,5 +1,0 @@
-if(EXISTS "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator[1]_tests.cmake")
-  include("/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator[1]_tests.cmake")
-else()
-  add_test(test_simulator_NOT_BUILT test_simulator_NOT_BUILT)
-endif()
