@@ -479,3 +479,45 @@ events:
       LTO support using: LLVM version 17.0.0 (static support for 29, runtime is 29)
       TAPI support using: Apple TAPI version 17.0.0 (tapi-1700.0.3.4)
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/CheckCSourceCompiles.cmake:58 (cmake_check_source_compiles)"
+      - "/opt/homebrew/share/cmake/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/opt/homebrew/share/cmake/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "build/_deps/googletest-src/googletest/cmake/internal_utils.cmake:66 (find_package)"
+      - "build/_deps/googletest-src/googletest/CMakeLists.txt:83 (config_compiler_and_linker)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5"
+      binary: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /opt/homebrew/bin/gmake -f Makefile cmTC_53ce7/fast
+        /opt/homebrew/bin/gmake  -f CMakeFiles/cmTC_53ce7.dir/build.make CMakeFiles/cmTC_53ce7.dir/build
+        gmake[1]: Entering directory '/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5'
+        Building C object CMakeFiles/cmTC_53ce7.dir/src.c.o
+        /Library/Developer/CommandLineTools/usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -MD -MT CMakeFiles/cmTC_53ce7.dir/src.c.o -MF CMakeFiles/cmTC_53ce7.dir/src.c.o.d -o CMakeFiles/cmTC_53ce7.dir/src.c.o -c /Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5/src.c
+        Linking C executable cmTC_53ce7
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_53ce7.dir/link.txt --verbose=1
+        /Library/Developer/CommandLineTools/usr/bin/cc  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_53ce7.dir/src.c.o -o cmTC_53ce7
+        gmake[1]: Leaving directory '/Users/debarunde/VSCode/DMHandler/DMHandler/build/CMakeFiles/CMakeScratch/TryCompile-gu5vI5'
+        
+      exitCode: 0
+...

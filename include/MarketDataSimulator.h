@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <functional>
+#include <chrono>
 
 /* want something that is capable of having a static repeatable handler (from csv file) 
 *   and something that can create data on its own in-memory
@@ -18,12 +19,19 @@ private:
 public:
     MarketDataSimulator();
     //primarily used for static case from csv file
-    MarketDataSimulator(const std::string& dataSource, bool isStatic);
+    MarketDataSimulator(bool isStatic);
     //primary used for dynamic case
-    //MarketDataSimulator(bool isStatic = false, int msgPerSecond, bool runUniform, int msgCount);
+    MarketDataSimulator(int msgPerSecond, bool runUniform, int msgCount);
 
     ~MarketDataSimulator();
 
+    std::string getDataSource()     const { return dataSource_;     };
+    bool        isStatic()          const { return isStatic_;       };
+    int         getMsgPerSecond()   const { return msgPerSecond_;   };
+    bool        isRunUniform()      const { return runUniform_;     };
+    int         getMsgCount()       const { return msgCount_;       };    
+
+    void sleep();
     void run(std::function<void(const std::string&)> callback);
 
 };

@@ -1,0 +1,7 @@
+MarketDataSimulatorTest.StaticReadsLinesCorrectly 19 0.0668881
+MarketDataSimulatorTest.DefaultConstructor 18 0.000167433
+MarketDataSimulatorTest.StaticConstructor 18 0.000150498
+MarketDataSimulatorTest.DynamicConstructor 18 0.000147544
+MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform 12 1.07052
+MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform 3 8.48526
+---

@@ -1,0 +1,165 @@
+Start testing: Jul 08 20:11 EDT
+----------------------------------------------------------
+1/6 Testing: MarketDataSimulatorTest.DefaultConstructor
+1/6 Test: MarketDataSimulatorTest.DefaultConstructor
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.DefaultConstructor" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.DefaultConstructor" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.DefaultConstructor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.DefaultConstructor
+[       OK ] MarketDataSimulatorTest.DefaultConstructor (0 ms)
+[----------] 1 test from MarketDataSimulatorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.DefaultConstructor" end time: Jul 08 20:11 EDT
+"MarketDataSimulatorTest.DefaultConstructor" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: MarketDataSimulatorTest.StaticConstructor
+2/6 Test: MarketDataSimulatorTest.StaticConstructor
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.StaticConstructor" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.StaticConstructor" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.StaticConstructor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.StaticConstructor
+[       OK ] MarketDataSimulatorTest.StaticConstructor (0 ms)
+[----------] 1 test from MarketDataSimulatorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.StaticConstructor" end time: Jul 08 20:11 EDT
+"MarketDataSimulatorTest.StaticConstructor" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: MarketDataSimulatorTest.DynamicConstructor
+3/6 Test: MarketDataSimulatorTest.DynamicConstructor
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.DynamicConstructor" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.DynamicConstructor" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.DynamicConstructor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.DynamicConstructor
+[       OK ] MarketDataSimulatorTest.DynamicConstructor (0 ms)
+[----------] 1 test from MarketDataSimulatorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.DynamicConstructor" end time: Jul 08 20:11 EDT
+"MarketDataSimulatorTest.DynamicConstructor" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: MarketDataSimulatorTest.StaticReadsLinesCorrectly
+4/6 Test: MarketDataSimulatorTest.StaticReadsLinesCorrectly
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.StaticReadsLinesCorrectly" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.StaticReadsLinesCorrectly" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.StaticReadsLinesCorrectly
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.StaticReadsLinesCorrectly
+[       OK ] MarketDataSimulatorTest.StaticReadsLinesCorrectly (1267 ms)
+[----------] 1 test from MarketDataSimulatorTest (1267 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1267 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   1.27 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.StaticReadsLinesCorrectly" end time: Jul 08 20:11 EDT
+"MarketDataSimulatorTest.StaticReadsLinesCorrectly" time elapsed: 00:00:01
+----------------------------------------------------------
+
+5/6 Testing: MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform
+5/6 Test: MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform
+[       OK ] MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform (12836 ms)
+[----------] 1 test from MarketDataSimulatorTest (12836 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (12836 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =  12.85 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform" end time: Jul 08 20:11 EDT
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyUniform" time elapsed: 00:00:12
+----------------------------------------------------------
+
+6/6 Testing: MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform
+6/6 Test: MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform
+Command: "/Users/debarunde/VSCode/DMHandler/DMHandler/build/test_simulator" "--gtest_filter=MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform" "--gtest_also_run_disabled_tests"
+Directory: /Users/debarunde/VSCode/DMHandler/DMHandler/build
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform" start time: Jul 08 20:11 EDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/debarunde/VSCode/DMHandler/DMHandler/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MarketDataSimulatorTest
+[ RUN      ] MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform
+[       OK ] MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform (25444 ms)
+[----------] 1 test from MarketDataSimulatorTest (25444 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (25444 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =  25.46 sec
+----------------------------------------------------------
+Test Passed.
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform" end time: Jul 08 20:12 EDT
+"MarketDataSimulatorTest.DynamicGeneratesLinesCorrectlyNonUniform" time elapsed: 00:00:25
+----------------------------------------------------------
+
+End testing: Jul 08 20:12 EDT
