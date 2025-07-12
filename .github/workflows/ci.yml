@@ -2,7 +2,7 @@ name: DMHandler CI
 
 on:
   push:
-    branches: [main , inputSimulator]
+    branches: [main , InputSimulator]
   pull_request:
     branches: [main]
 
