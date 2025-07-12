@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 #--------Add Google Test via FetchContent--------
 include(FetchContent)
 
-set(FETCHCONTENT_DOWNLOAD_EXTRACT_TIMESTAMP TRUE CACHE BOOL "")
-
 FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/heads/main.zip
