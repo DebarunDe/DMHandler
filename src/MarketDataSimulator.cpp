@@ -126,7 +126,10 @@ void MarketDataSimulator::run(function<void(const string&)> callback) {
             ostringstream priceStream;
             priceStream << fixed << setprecision(2) << price; // format price to 2 decimal places
             Quantity quantity = 1 + rand() % 100; // quantity between 1 and 100
-            Timestamp timestamp = chrono::microseconds(chrono::system_clock::now().time_since_epoch()).count();
+            Timestamp timestamp = chrono::duration_cast<chrono::microseconds>(
+                chrono::system_clock::now().time_since_epoch()
+            ).count();
+            
             string dataLine = ticker + "," +
                                 priceStream.str() + "," + 
                                 to_string(quantity) + "," +
