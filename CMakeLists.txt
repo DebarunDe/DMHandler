@@ -3,6 +3,8 @@ project(DMHandler)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(FETCHCONTENT_DOWNLOAD_EXTRACT_TIMESTAMP TRUE CACHE BOOL "")
+
 #--------Add Google Test via FetchContent--------
 include(FetchContent)
 
