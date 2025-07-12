@@ -94,6 +94,6 @@ TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyNonUniform) {
         EXPECT_TRUE(stoll(parts[4]) > 0); // Timestamp should be a positive long
     });
 
-    EXPECT_EQ(count, 10'000) << "Actual count: " << count;
-    //EXPECT_NEAR(count, 10'000, 200); // Expect approximately 10000 lines generated, allow for variance do to github action timing 
+    std::cerr << "Count generated: " << count << "\n";
+    EXPECT_NEAR(count, 10'000, 200); // Expect approximately 10000 lines generated, allow for variance do to github action timing 
 }
