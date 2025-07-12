@@ -2,6 +2,7 @@
 #include "../include/ThreadSafeMessageQueue.h"
 #include <thread>
 #include <chrono>
+#include <random>
 
 using namespace std;
 
@@ -97,25 +98,41 @@ TEST(ThreadSafeMessageQueue, PopWaits) {
     EXPECT_TRUE(queue.empty());
 }
 
-TEST(ThreadSafeMessageQueue, PushAndPopMultipleThreads) {
+TEST(ThreadSafeMessageQueue, StressTest) {
     ThreadSafeMessageQueue<int> queue;
 
-    const int numThreads = 10;
+    const int numThreads = 20;
+    const int numMessages = 1000;
+    const int totalMessages = numThreads * numMessages;
+
+    std::atomic<int> totalPopped{0};
     vector<thread> producers;
     vector<thread> consumers;
 
+    auto jitter = []() {
+        static thread_local mt19937 rng(random_device{}());
+        uniform_int_distribution<int> dist(0, 5);  // 0–5ms
+        this_thread::sleep_for(chrono::milliseconds(dist(rng)));
+    };
+
+    // Producers
     for (int i = 0; i < numThreads; ++i) {
-        producers.emplace_back([&queue, i]() {
-            for (int j = 0; j < 10; ++j) {
-                queue.push(i * 10 + j);
+        producers.emplace_back([&queue, i, &jitter]() {
+            for (int j = 0; j < numMessages; ++j) {
+                jitter();  // simulate inconsistent delivery
+                queue.push(i * numMessages + j);  // still unique values
             }
         });
+    }
 
-        consumers.emplace_back([&queue, i]() {
-            for (int j = 0; j < 10; ++j) {
+    // Consumers
+    for (int i = 0; i < numThreads; ++i) {
+        consumers.emplace_back([&queue, &totalPopped, &jitter]() {
+            for (int j = 0; j < numMessages; ++j) {
+                jitter();  // simulate inconsistent delivery
                 int value = queue.pop();
-                EXPECT_GE(value, i * 10);
-                EXPECT_LT(value, (i + 1) * 10);
+                (void)value;  // we're not validating exact value anymore
+                ++totalPopped;
             }
         });
     }
@@ -123,5 +140,8 @@ TEST(ThreadSafeMessageQueue, PushAndPopMultipleThreads) {
     for (auto& producer : producers) producer.join();
     for (auto& consumer : consumers) consumer.join();
 
+    EXPECT_EQ(totalPopped.load(), totalMessages);
     EXPECT_TRUE(queue.empty());
+    EXPECT_EQ(queue.size(), 0);
+    EXPECT_THROW(queue.top(), runtime_error); 
 }
