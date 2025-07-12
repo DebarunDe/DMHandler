@@ -3,6 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
+#include <stdexcept>
 
 template <typename T>
 class ThreadSafeMessageQueue {
