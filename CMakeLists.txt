@@ -3,8 +3,6 @@ project(DMHandler)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include)
-
 #--------Add Google Test via FetchContent--------
 include(FetchContent)
 
@@ -27,10 +25,26 @@ add_executable(market_data_feed
     src/MarketDataSimulator.cpp
 )
 
+target_include_directories(market_data_feed
+    PRIVATE ${PROJECT_SOURCE_DIR}/include 
+)   
+
 #------- Unit Tests -------
 add_executable(test_simulator
     tests/tests_simulator.cpp 
     src/MarketDataSimulator.cpp
+)
+
+add_executable(test_thread_safe_message_queue
+    tests/tests_thread_safe_message_queue.cpp
+)
+
+target_include_directories(test_simulator 
+    PRIVATE ${PROJECT_SOURCE_DIR}/include 
+)
+
+target_include_directories(test_thread_safe_message_queue
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
 #-------- Link Libraries -------
@@ -38,5 +52,11 @@ target_link_libraries(test_simulator
     gtest_main
 )
 
+target_link_libraries(test_thread_safe_message_queue
+    gtest_main 
+)
+
 include(GoogleTest)
 gtest_discover_tests(test_simulator)
+gtest_discover_tests(test_thread_safe_message_queue)
+#---------------------------------

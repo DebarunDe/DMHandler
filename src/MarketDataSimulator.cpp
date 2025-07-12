@@ -61,18 +61,18 @@ OrderType ordertypeToString(Order order) {
 MarketDataSimulator::MarketDataSimulator():
         dataSource_("/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv"),
         isStatic_(false),
-        msgPerSecond_(1000), // default to 1000 messages per second
+        msgPerSecond_(1'000), // default to 1000 messages per second
         runUniform_(true),
-        msgCount_(1000)
+        msgCount_(1'000)
         { }
 
 //primarily used for static case from csv file
 MarketDataSimulator::MarketDataSimulator(bool isStatic):
     dataSource_("/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv"),
     isStatic_(isStatic),
-    msgPerSecond_(1000), // default to 1000 messages per second
+    msgPerSecond_(1'000), // default to 1000 messages per second
     runUniform_(true),
-    msgCount_(1000)
+    msgCount_(1'000)
     { }
     
 //primary used for dynamic case
@@ -88,14 +88,20 @@ MarketDataSimulator::~MarketDataSimulator() {
     // destructor logic if needed
 }
 
-void MarketDataSimulator::sleep() {
-    auto interval = chrono::microseconds(1'000'000 / msgPerSecond_); // convert messages per second to milliseconds
-    if (runUniform_) this_thread::sleep_for(interval);
-    else this_thread::sleep_for(interval * (1 +rand() % 3)); //randomly increase the interval by 0-3 times
+
+void MarketDataSimulator::sleep(chrono::microseconds interval) {
+    if (isRunUniform()) this_thread::sleep_for(interval);
+    else {
+        auto devianceType = rand() % 2; // 0 for burst, 1 for slowdown
+        (devianceType == 0)?
+            this_thread::sleep_for(interval / (1 - rand() % 10)): 
+            this_thread::sleep_for(interval * (1 + rand() % 10)); //randomly increase/decrease the interval by 0-3 times
+    }
 }
 
 void MarketDataSimulator::run(function<void(const string&)> callback) {
-    
+    auto interval = chrono::microseconds(1'000'000 / getMsgPerSecond()); // convert messages per second to milliseconds
+
     if (isStatic_) {
         //read from file
         ifstream file(dataSource_);
@@ -106,7 +112,7 @@ void MarketDataSimulator::run(function<void(const string&)> callback) {
 
         while (getline(file, line)) {
             callback(line);
-            sleep();
+            sleep(interval);
         }
     }
     else {
@@ -116,7 +122,7 @@ void MarketDataSimulator::run(function<void(const string&)> callback) {
             //Generate single line of data
             TickerSymbol ticker = tickerToString(static_cast<Ticker>(rand() % 11)); // 0-10 for 11 symbols
             OrderType order = ordertypeToString(static_cast<Order>(rand() % 2)); // 0 or 1 for buy/sell
-            Price price = 100.0 + static_cast<double>(rand() % 10000) / 100.0; // price between 100.00 and 200.00
+            Price price = 100.0 + static_cast<double>(rand() % 10'000) / 100.0; // price between 100.00 and 200.00
             ostringstream priceStream;
             priceStream << fixed << setprecision(2) << price; // format price to 2 decimal places
             Quantity quantity = 1 + rand() % 100; // quantity between 1 and 100
@@ -128,7 +134,7 @@ void MarketDataSimulator::run(function<void(const string&)> callback) {
                                 to_string(timestamp);
             callback(dataLine);
             dynamicMsgCount++;
-            sleep();
+            sleep(interval);
         }
     }
 }

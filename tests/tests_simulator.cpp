@@ -8,27 +8,27 @@ TEST(MarketDataSimulatorTest, DefaultConstructor) {
     MarketDataSimulator sim;
     EXPECT_EQ(sim.getDataSource(), "/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv");
     EXPECT_FALSE(sim.isStatic());
-    EXPECT_EQ(sim.getMsgPerSecond(), 1000);
+    EXPECT_EQ(sim.getMsgPerSecond(), 1'000);
     EXPECT_TRUE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(),1000);
+    EXPECT_EQ(sim.getMsgCount(),1'000);
 }
 
 TEST(MarketDataSimulatorTest, StaticConstructor) {
     MarketDataSimulator sim(true);
     EXPECT_EQ(sim.getDataSource(), "/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv");
     EXPECT_TRUE(sim.isStatic());
-    EXPECT_EQ(sim.getMsgPerSecond(), 1000);
+    EXPECT_EQ(sim.getMsgPerSecond(), 1'000);
     EXPECT_TRUE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(), 1000);
+    EXPECT_EQ(sim.getMsgCount(), 1'000);
 }
 
 TEST(MarketDataSimulatorTest, DynamicConstructor) {
-    MarketDataSimulator sim(500, false, 2000);
+    MarketDataSimulator sim(500, false, 2'000);
     EXPECT_EQ(sim.getDataSource(), "");
     EXPECT_FALSE(sim.isStatic());
     EXPECT_EQ(sim.getMsgPerSecond(), 500);
     EXPECT_FALSE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(), 2000);
+    EXPECT_EQ(sim.getMsgCount(), 2'000);
 }
 
 TEST(MarketDataSimulatorTest, StaticReadsLinesCorrectly) {
@@ -45,9 +45,9 @@ TEST(MarketDataSimulatorTest, StaticReadsLinesCorrectly) {
 
 TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyUniform) {
     int count = 0;
-    auto msgPerSecond = 1000;
+    auto msgPerSecond = 1'000;
     auto runUniform = true;
-    auto msgCount = 10000;
+    auto msgCount = 10'000;
     MarketDataSimulator sim(msgPerSecond, runUniform, msgCount); // Fast for test
 
     sim.run([&count](const string& line){
@@ -67,14 +67,14 @@ TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyUniform) {
         EXPECT_TRUE(stoll(parts[4]) > 0); // Timestamp should be a positive long
     });
 
-    EXPECT_EQ(count, 10000); // Expect exactly 10000 lines generated 
+    EXPECT_EQ(count, 10'000); // Expect exactly 10000 lines generated 
 }
 
 TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyNonUniform) {
     int count = 0;
-    auto msgPerSecond = 1000;
+    auto msgPerSecond = 1'000;
     auto runUniform = false;
-    auto msgCount = 10000;
+    auto msgCount = 10'000;
     MarketDataSimulator sim(msgPerSecond, runUniform, msgCount); // Fast for test
 
     sim.run([&count](const string& line){
@@ -94,5 +94,5 @@ TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyNonUniform) {
         EXPECT_TRUE(stoll(parts[4]) > 0); // Timestamp should be a positive long
     });
 
-    EXPECT_EQ(count, 10000); // Expect exactly 10000 lines generated 
+    EXPECT_EQ(count, 10'000); // Expect exactly 10000 lines generated 
 }
