@@ -2,7 +2,7 @@ name: DMHandler CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, ContinuousDevelopmentIntegration]
   pull_request:
     branches: [main]
 
@@ -25,3 +25,20 @@ jobs:
 
       - name: Run Tests
         run: cd build && ctest --output-on-failure
+
+      - name: Upload Test Results
+        run: if [ -d build/Testing ]; then
+              mkdir -p $GITHUB_WORKSPACE/test-results;
+              cp -r build/Testing/Temporary/* $GITHUB_WORKSPACE/test-results/;
+            fi
+      
+      - name: Upload Binaries to S3
+        if: success() 
+        run: |
+          aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/DMHandler-${{ github.sha }}
+          aws s3 cp build/tests_simulator s3://dmhandler-build-artifacts/tests_simulator-${{ github.sha }}
+          aws s3 cp build/tests_thread_safe_message_queue s3://dmhandler-build-artifacts/tests_thread_safe_message_queue-${{ github.sha }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}

@@ -20,12 +20,12 @@ enable_testing()
 #-------------------------------------------------
 
 #------- Main App ---------
-add_executable(market_data_feed
+add_executable(DMHandler
     src/main.cpp
     src/MarketDataSimulator.cpp
 )
 
-target_include_directories(market_data_feed
+target_include_directories(DMHandler
     PRIVATE ${PROJECT_SOURCE_DIR}/include 
 )   
 
