@@ -36,8 +36,6 @@ jobs:
         if: success() 
         run: |
           aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/DMHandler-${{ github.sha }}
-          aws s3 cp build/tests_simulator s3://dmhandler-build-artifacts/tests_simulator-${{ github.sha }}
-          aws s3 cp build/tests_thread_safe_message_queue s3://dmhandler-build-artifacts/tests_thread_safe_message_queue-${{ github.sha }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
