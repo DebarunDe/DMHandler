@@ -4,7 +4,7 @@ on:
     push:
         branches: [main]
         paths:
-            - 'cdk_dmhandler_pipeline/**'
+            - 'infrastructure/**'
 
 jobs:
   deploy:
@@ -26,22 +26,22 @@ jobs:
         run: npm install -g aws-cdk
       
       - name: Install CDK Dependencies
-        run: pip install -r cdk_dmhandler_pipeline/requirements.txt
+        run: pip install -r infrastructure/requirements.txt
     
       - name: CDK Synth
         run: cdk synth
-        working-directory: cdk_dmhandler_pipeline
+        working-directory: infrastructure
 
       # Optional: Upload synthesized output
       - name: Upload synthesized template
         uses: actions/upload-artifact@v4
         with:
           name: cdk.out
-          path: cdk_dmhandler_pipeline/cdk.out/
+          path: infrastructure/cdk.out/
       
       - name: Deploy CDK stack
         run: |
-          cd cdk_dmhandler_pipeline
+          cd infrastructure
           cdk deploy --require-approval never
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
