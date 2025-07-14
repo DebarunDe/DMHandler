@@ -26,11 +26,11 @@ jobs:
       - name: Run Tests
         run: cd build && ctest --output-on-failure
 
-      - name: Upload Test Results
-        run: if [ -d build/Testing ]; then
-              mkdir -p $GITHUB_WORKSPACE/test-results;
-              cp -r build/Testing/Temporary/* $GITHUB_WORKSPACE/test-results/;
-            fi
+      - name: Upload Test Result Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/Testing/Temporary/LastTest.log
       
       - name: Upload Binaries to S3
         if: success() 
