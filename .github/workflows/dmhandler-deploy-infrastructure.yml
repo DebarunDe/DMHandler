@@ -1,0 +1,50 @@
+name: DMHandler Deploy Infrastructure
+
+on:
+    push:
+        branches: [main, ContinuousDevelopmentIntegration]
+        paths:
+            - 'cdk_dmhandler_pipeline/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3  
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+      
+      - name: Install CDK Dependencies
+        run: pip install -r cdk_dmhandler_pipeline/requirements.txt
+    
+      - name: CDK Synth
+        run: cdk synth
+        working-directory: cdk_dmhandler_pipeline
+
+      # Optional: Upload synthesized output
+      - name: Upload synthesized template
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdk.out
+          path: cdk_dmhandler_pipeline/cdk.out/
+      
+      - name: Deploy CDK stack
+        run: |
+          cd cdk_dmhandler_pipeline
+          cdk deploy --require-approval never
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+            

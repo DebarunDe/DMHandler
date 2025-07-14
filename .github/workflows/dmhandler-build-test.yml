@@ -3,6 +3,8 @@ name: DMHandler CI
 on:
   push:
     branches: [main, ContinuousDevelopmentIntegration]
+    paths-ignore:
+      - 'cdk_dmhandler_pipeline/**'   # skip build if only infra changes
   pull_request:
     branches: [main]
 
