@@ -41,7 +41,7 @@ class CdkDmhandlerPipelineStack(Stack):
 
         lambda_fn.add_permission(
             "AllowS3Invoke",
-            principle=iam.ServicePrincipal("s3.amazonaws.com"),
+            principal=iam.ServicePrincipal("s3.amazonaws.com"),
             source_arn=bucket.bucket_arn,
         )
 
