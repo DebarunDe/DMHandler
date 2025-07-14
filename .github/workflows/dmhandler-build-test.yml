@@ -1,0 +1,50 @@
+name: DMHandler CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'cdk_dmhandler_pipeline/**'   # skip build if only infra changes
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run Tests
+        run: cd build && ctest --output-on-failure
+
+      - name: Upload Test Result Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/Testing/Temporary/LastTest.log
+      
+      - name: Upload Binaries to S3
+        if: success() 
+        run: |
+          aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/releases/DMHandler-v0.1.0-${{ github.sha }} --metadata version=0.1.0,build=local
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DMHandler
+          path: build/DMHandler

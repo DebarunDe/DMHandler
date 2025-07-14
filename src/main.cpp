@@ -5,8 +5,8 @@
 using namespace std;
 
 int main() {
-    //clear && cmake .. && make && ctest && ./market_data_feed
-    //clear && cmake .. && make && ./market_data_feed
+    // cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && ninja -C build
+    // cd build && ctest --output-on-failure && ./DMHandler
     // try {
     //     MarketDataSimulator simulator("../data/market_data.csv",true); //Static case
 
