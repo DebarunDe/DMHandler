@@ -3,7 +3,7 @@
 #include <cstdlib> // for getenv
 
 using namespace std;
-//clear && cmake .. && make && ctest 
+//clear && cmake .. && make && ctest  
 
 TEST(MarketDataSimulatorTest, DefaultConstructor) {
     MarketDataSimulator sim;
