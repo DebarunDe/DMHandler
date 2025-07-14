@@ -30,6 +30,7 @@ class CdkDmhandlerPipelineStack(Stack):
 
         lambda_fn = _lambda.Function(
             self, "DmHandlerLambda",
+            function_name="DmHandlerLambda",
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler="lambda_handler.main",
             code=_lambda.Code.from_asset("lambda")
