@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_s3_deployment as s3deploy,
     aws_lambda as _lambda,
     aws_s3_notifications as s3n,
+    aws_iam as iam,
     # aws_sqs as sqs,
 )
 from constructs import Construct
@@ -37,6 +38,12 @@ class CdkDmhandlerPipelineStack(Stack):
         )
 
         bucket.grant_read(lambda_fn)
+
+        lambda_fn.add_permission(
+            "AllowS3Invoke",
+            principle=iam.ServicePrincipal("s3.amazonaws.com"),
+            source_arn=bucket.bucket_arn,
+        )
 
         #add event notification to bucket
         notification = s3n.LambdaDestination(lambda_fn)
