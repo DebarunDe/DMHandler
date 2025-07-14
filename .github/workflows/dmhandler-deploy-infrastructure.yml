@@ -2,7 +2,7 @@ name: DMHandler Deploy Infrastructure
 
 on:
     push:
-        branches: [main, ContinuousDevelopmentIntegration]
+        branches: [main]
         paths:
             - 'cdk_dmhandler_pipeline/**'
 
