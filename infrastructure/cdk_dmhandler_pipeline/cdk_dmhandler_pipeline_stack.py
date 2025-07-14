@@ -44,11 +44,3 @@ class CdkDmhandlerPipelineStack(Stack):
             principal=iam.ServicePrincipal("s3.amazonaws.com"),
             source_arn=bucket.bucket_arn,
         )
-
-        #add event notification to bucket
-        notification = s3n.LambdaDestination(lambda_fn)
-        bucket.add_event_notification(
-            s3.EventType.OBJECT_CREATED,
-            notification,
-            s3.NotificationKeyFilter(prefix="release/")
-        )
