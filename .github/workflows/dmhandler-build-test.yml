@@ -44,7 +44,7 @@ jobs:
         run: cmake --build build
 
       - name: Run Tests with Coverage
-        run: ./build/tests/tests_simulator && ./build/tests/tests_thread_safe_message_queue
+        run: ./build/tests_simulator && ./build/tests_thread_safe_message_queue
 
       - name: Generate code coverage report
         run: |
