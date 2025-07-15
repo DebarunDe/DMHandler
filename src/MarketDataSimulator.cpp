@@ -61,8 +61,8 @@ OrderType ordertypeToString(Order order) {
 MarketDataSimulator::MarketDataSimulator():
         dataSource_("/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv"),
         isStatic_(false),
-        msgPerSecond_(1'000), // default to 1000 messages per second
         runUniform_(true),
+        msgPerSecond_(1'000), // default to 1000 messages per second
         msgCount_(1'000)
         { }
 
@@ -70,17 +70,17 @@ MarketDataSimulator::MarketDataSimulator():
 MarketDataSimulator::MarketDataSimulator(bool isStatic):
     dataSource_("/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv"),
     isStatic_(isStatic),
-    msgPerSecond_(1'000), // default to 1000 messages per second
     runUniform_(true),
+    msgPerSecond_(1'000), // default to 1000 messages per second
     msgCount_(1'000)
     { }
     
 //primary used for dynamic case
-MarketDataSimulator::MarketDataSimulator(int msgPerSecond, bool runUniform, int msgCount):
+MarketDataSimulator::MarketDataSimulator(bool runUniform, int msgPerSecond, int msgCount):
     dataSource_(""),
     isStatic_(false),
-    msgPerSecond_(msgPerSecond),
     runUniform_(runUniform),
+    msgPerSecond_(msgPerSecond),
     msgCount_(msgCount)
     { }
 
@@ -92,10 +92,10 @@ MarketDataSimulator::~MarketDataSimulator() {
 void MarketDataSimulator::sleep(chrono::microseconds interval) {
     if (isRunUniform()) this_thread::sleep_for(interval);
     else {
-        auto devianceType = rand() % 2; // 0 for burst, 1 for slowdown
+        auto devianceType = arc4random() % 2; // 0 for burst, 1 for slowdown
         (devianceType == 0)?
-            this_thread::sleep_for(interval / (1 - rand() % 10)): 
-            this_thread::sleep_for(interval * (1 + rand() % 10)); //randomly increase/decrease the interval by 0-3 times
+            this_thread::sleep_for(interval / (1 - arc4random() % 10)): 
+            this_thread::sleep_for(interval * (1 + arc4random() % 10)); //randomly increase/decrease the interval by 0-3 times
     }
 }
 
@@ -120,12 +120,12 @@ void MarketDataSimulator::run(function<void(const string&)> callback) {
         auto dynamicMsgCount = 0;
         while (dynamicMsgCount < msgCount_) {
             //Generate single line of data
-            TickerSymbol ticker = tickerToString(static_cast<Ticker>(rand() % 11)); // 0-10 for 11 symbols
-            OrderType order = ordertypeToString(static_cast<Order>(rand() % 2)); // 0 or 1 for buy/sell
-            Price price = 100.0 + static_cast<double>(rand() % 10'000) / 100.0; // price between 100.00 and 200.00
+            TickerSymbol ticker = tickerToString(static_cast<Ticker>(arc4random() % 11)); // 0-10 for 11 symbols
+            OrderType order = ordertypeToString(static_cast<Order>(arc4random() % 2)); // 0 or 1 for buy/sell
+            Price price = 100.0 + static_cast<double>(arc4random() % 10'000) / 100.0; // price between 100.00 and 200.00
             ostringstream priceStream;
             priceStream << fixed << setprecision(2) << price; // format price to 2 decimal places
-            Quantity quantity = 1 + rand() % 100; // quantity between 1 and 100
+            Quantity quantity = 1 + arc4random() % 100; // quantity between 1 and 100
             Timestamp timestamp = chrono::duration_cast<chrono::microseconds>(
                 chrono::system_clock::now().time_since_epoch()
             ).count();

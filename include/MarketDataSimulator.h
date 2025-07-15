@@ -13,17 +13,17 @@ private:
 public:
     MarketDataSimulator();
     //primarily used for static case from csv file
-    MarketDataSimulator(bool isStatic);
+    explicit MarketDataSimulator(bool isStatic);
     //primary used for dynamic case
-    MarketDataSimulator(int msgPerSecond, bool runUniform, int msgCount);
+    MarketDataSimulator(bool runUniform, int msgPerSecond, int msgCount);
 
     ~MarketDataSimulator();
 
-    std::string getDataSource()     const { return dataSource_;     };
-    bool        isStatic()          const { return isStatic_;       };
-    bool        isRunUniform()      const { return runUniform_;     };
-    int         getMsgPerSecond()   const { return msgPerSecond_;   };
-    int         getMsgCount()       const { return msgCount_;       };    
+    const std::string& getDataSource()     const { return dataSource_;     };
+    const bool         isStatic()          const { return isStatic_;       };
+    const bool         isRunUniform()      const { return runUniform_;     };
+    const int          getMsgPerSecond()   const { return msgPerSecond_;   };
+    const int          getMsgCount()       const { return msgCount_;       };    
 
     void sleep(std::chrono::microseconds interval);
     void run(std::function<void(const std::string&)> callback);
