@@ -3,7 +3,7 @@ name: DMHandler CI
 on:
   push:
     paths-ignore:
-      - 'infrastructure/**'
+      - 'infrastructure/**'   # skip build if only infra changes
   pull_request:
     branches: [main]
 
@@ -15,11 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov clang-tidy cppcheck
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
 
-      # Static analysis
-      - name: Configure CMake with compile_commands.json
+      - name: Install clang-tidy and cppcheck
+        run: sudo apt-get install -y clang-tidy cppcheck
+
+      - name: Configure CMake (Debug + Analysis)
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
@@ -27,38 +29,40 @@ jobs:
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem \
-                   --std=c++17 --error-exitcode=1 --quiet ./src ./include ./tests
+          cppcheck --enable=all --inconclusive --quiet \
+                   --suppress=missingIncludeSystem \
+                   --std=c++17 \
+                   --error-exitcode=1 \
+                   ./include ./src ./tests
 
-      # Code coverage
-      - name: Configure CMake with code coverage
+      - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
-      - name: Build project with tests
+      - name: Build with Coverage
         run: cmake --build build
 
-      - name: Run tests with ctest
+      - name: Run Tests with CTest
         run: cd build && ctest --output-on-failure
 
-      - name: Generate coverage report
+      - name: Generate Code Coverage Report
         run: |
           lcov --directory build --capture --output-file coverage.info
           lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
-          genhtml coverage.info --output-directory coverage_report
+          genhtml coverage.info --output-directory coverage_report --ignore-errors mismatch
 
-      - name: Upload coverage report
+      - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage_report
 
-      - name: Upload test logs
+      - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: build/Testing/Temporary/LastTest.log
 
-      - name: Upload DMHandler binary to S3
+      - name: Upload Binary to S3
         if: success()
         run: |
           aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/releases/DMHandler-v0.1.0-${{ github.sha }} \
@@ -68,7 +72,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      - name: Upload DMHandler to GitHub Artifacts
+      - name: Upload DMHandler Binary to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: DMHandler
