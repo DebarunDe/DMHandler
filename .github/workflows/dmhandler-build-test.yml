@@ -3,7 +3,7 @@ name: DMHandler CI
 on:
   push:
     paths-ignore:
-      - 'infrastructure/**'   # skip build if only infra changes
+      - 'infrastructure/**'
   pull_request:
     branches: [main]
 
@@ -15,65 +15,60 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov clang-tidy cppcheck
 
-      - name: Configure CMake
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-      
-      - name: Install clang-tidy and cppcheck
-        run: sudo apt-get update && sudo apt-get install -y clang-tidy cppcheck
-
-      - name: Run CMake with static analysis
-        run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
+      # Static analysis
+      - name: Configure CMake with compile_commands.json
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
-        run: clang-tidy -p build $(find . -name '*.cpp')
+        run: clang-tidy -p build $(find ./src ./include ./tests -name '*.cpp')
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem --quiet --error-exitcode=1 --std=c++17 ./include ./src ./tests
+          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem \
+                   --std=c++17 --error-exitcode=1 --quiet ./src ./include ./tests
 
-      - name: Install lcov
-        run: sudo apt-get install -y lcov
+      # Code coverage
+      - name: Configure CMake with code coverage
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
-      - name: Configure CMake for coverage
-        run: cmake -B build -DCODE_COVERAGE=ON
-
-      - name: Build Tests with Coverage
+      - name: Build project with tests
         run: cmake --build build
 
-      - name: Run Tests with Coverage
-        run: ./build/tests_simulator && ./build/tests_thread_safe_message_queue
-
-      - name: Generate code coverage report
-        run: |
-          lcov --directory . --capture --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info
-          genhtml coverage.info --output-directory coverage_report
-
-      - name: Build
-        run: cmake --build build
-
-      - name: Run Tests
+      - name: Run tests with ctest
         run: cd build && ctest --output-on-failure
 
-      - name: Upload Test Result Artifacts
+      - name: Generate coverage report
+        run: |
+          lcov --directory build --capture --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          genhtml coverage.info --output-directory coverage_report
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage_report
+
+      - name: Upload test logs
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: build/Testing/Temporary/LastTest.log
-      
-      - name: Upload Binaries to S3
-        if: success() 
+
+      - name: Upload DMHandler binary to S3
+        if: success()
         run: |
-          aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/releases/DMHandler-v0.1.0-${{ github.sha }} --metadata version=0.1.0,build=local
+          aws s3 cp build/DMHandler s3://dmhandler-build-artifacts/releases/DMHandler-v0.1.0-${{ github.sha }} \
+            --metadata version=0.1.0,build=local
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      - name: Upload to GitHub Artifacts
+      - name: Upload DMHandler to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: DMHandler
