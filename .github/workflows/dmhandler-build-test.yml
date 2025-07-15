@@ -31,7 +31,8 @@ jobs:
         run: clang-tidy -p build $(find . -name '*.cpp')
 
       - name: Run cppcheck
-        run: cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem --quiet --std=c++17 ./include ./src ./tests
+        run: |
+          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem --quiet --error-exitcode=1 --std=c++17 ./include ./src ./tests
 
       - name: Build
         run: cmake --build build
