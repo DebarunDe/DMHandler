@@ -24,7 +24,7 @@ TEST(MarketDataSimulatorTest, StaticConstructor) {
 }
 
 TEST(MarketDataSimulatorTest, DynamicConstructor) {
-    MarketDataSimulator sim(500, false, 2'000);
+    MarketDataSimulator sim(false, 500, 2'000);
     EXPECT_EQ(sim.getDataSource(), "");
     EXPECT_FALSE(sim.isStatic());
     EXPECT_EQ(sim.getMsgPerSecond(), 500);
@@ -49,7 +49,7 @@ TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyUniform) {
     auto msgPerSecond = 1'000;
     auto runUniform = true;
     auto msgCount = 10'000;
-    MarketDataSimulator sim(msgPerSecond, runUniform, msgCount); // Fast for test
+    MarketDataSimulator sim(runUniform, msgPerSecond, msgCount); // Fast for test
 
     sim.run([&count](const string& line){
         EXPECT_FALSE(line.empty());

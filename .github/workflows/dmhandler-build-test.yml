@@ -2,7 +2,6 @@ name: DMHandler CI
 
 on:
   push:
-    branches: [main, InfrastructureBuild]
     paths-ignore:
       - 'infrastructure/**'   # skip build if only infra changes
   pull_request:
