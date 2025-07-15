@@ -28,10 +28,10 @@ public:
     ThreadSafeMessageQueue& operator=(ThreadSafeMessageQueue&&) = default;
 
     //accessors
-    const std::deque<T>& getQueue() const {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return queue_;
-    }
+    // const std::deque<T>& getQueue() const {
+    //     std::lock_guard<std::mutex> lock(mutex_);
+    //     return queue_;
+    // }
 
     //functions
     T pop() {
