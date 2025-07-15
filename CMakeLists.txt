@@ -17,6 +17,29 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
+
+#--------- Code Coverage Tools ---------
+# Enable clang-tidy if available
+find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
+if (CLANG_TIDY_EXE) 
+    message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# Enable cppcheck if available
+find_program(CPPCHECK_EXE NAMES "cppcheck")
+if(CPPCHECK_EXE)
+    message(STATUS "Found cppcheck: ${CPPCHECK_EXE}")
+    set(CMAKE_CXX_CPPCHECK "${CPPCHECK_EXE};--enable=all;--inconclusive;--quiet")
+endif()
+
+option(CODE_COVERAGE "Enable code coverage" OFF)
+if(CODE_COVERAGE)
+    message(STATUS "Code coverage enabled")
+    add_compile_options(--coverage)
+    link_libraries(gcov)
+endif()
+
 #-------------------------------------------------
 
 #------- Main App ---------
