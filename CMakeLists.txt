@@ -31,7 +31,9 @@ endif()
 find_program(CPPCHECK_EXE NAMES "cppcheck")
 if(CPPCHECK_EXE)
     message(STATUS "Found cppcheck: ${CPPCHECK_EXE}")
-    set(CMAKE_CXX_CPPCHECK "${CPPCHECK_EXE};--enable=all;--inconclusive;--quiet;--suppress=missingIncludeSystem")
+    set(CMAKE_CXX_CPPCHECK
+    "${CPPCHECK_EXE};--enable=all;--inconclusive;--quiet;--inline-suppr;--suppress=missingIncludeSystem;--std=c++17;--language=c++"
+    )
 endif()
 
 option(CODE_COVERAGE "Enable code coverage" OFF)
