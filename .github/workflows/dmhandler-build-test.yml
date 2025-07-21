@@ -32,6 +32,8 @@ jobs:
           cppcheck --enable=all --inconclusive --quiet \
                    --suppress=missingIncludeSystem \
                    --std=c++17 \
+                   --suppress=unusedFunction:OrderSide.h \
+                   --suppress=unusedFunction:tests/tests_simulator.cpp \
                    --error-exitcode=1 \
                    ./include ./src ./tests
 
