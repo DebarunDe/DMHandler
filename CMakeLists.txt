@@ -58,33 +58,47 @@ target_include_directories(DMHandler
 )   
 
 #------- Unit Tests -------
-add_executable(test_simulator
+add_executable(tests_simulator
     tests/tests_simulator.cpp 
     src/MarketDataSimulator.cpp
 )
 
-add_executable(test_thread_safe_message_queue
+add_executable(tests_thread_safe_message_queue
     tests/tests_thread_safe_message_queue.cpp
 )
 
-target_include_directories(test_simulator 
+add_executable(tests_generator
+    tests/tests_generator.cpp
+    src/MarketDataGenerator.cpp
+)
+
+target_include_directories(tests_simulator 
     PRIVATE ${PROJECT_SOURCE_DIR}/include 
 )
 
-target_include_directories(test_thread_safe_message_queue
+target_include_directories(tests_thread_safe_message_queue
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(tests_generator
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
 #-------- Link Libraries -------
-target_link_libraries(test_simulator
+target_link_libraries(tests_simulator
     gtest_main
 )
 
-target_link_libraries(test_thread_safe_message_queue
+target_link_libraries(tests_thread_safe_message_queue
     gtest_main 
 )
 
+target_link_libraries(tests_generator 
+    gtest_main
+)
+
 include(GoogleTest)
-gtest_discover_tests(test_simulator)
-gtest_discover_tests(test_thread_safe_message_queue)
+gtest_discover_tests(tests_simulator)
+gtest_discover_tests(tests_thread_safe_message_queue)
+gtest_discover_tests(tests_generator)
 #---------------------------------

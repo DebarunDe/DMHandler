@@ -42,6 +42,15 @@ public:
         return item;
     }
 
+    bool tryPop(T& item) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.empty()) return false;
+
+        item = std::move(queue_.front());
+        queue_.pop_front();
+        return true;
+    }
+
     //rval push
     void push(T&& item) {
         {
