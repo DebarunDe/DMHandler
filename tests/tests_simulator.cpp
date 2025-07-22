@@ -37,13 +37,20 @@ TEST_F(MarketDataSimulatorTest, StartAndStopDoesNotThrow) {
 TEST_F(MarketDataSimulatorTest, EmitsMessagesInRealtimeMode) {
     simulator->setReplayMode(ReplayMode::REALTIME);
     simulator->start();
-    this_thread::sleep_for(1s); // Let it emit all messages
+    this_thread::sleep_for(15s); // Let it emit all messages
     simulator->stop();
 
     auto messages = drainQueue();
     EXPECT_GT(messages.size(), 0);
-    EXPECT_EQ(messages.front().symbol, "AAPL");
-    EXPECT_EQ(messages.back().symbol, "TSLA");
+    EXPECT_EQ(messages.front().symbol, "TSLA");
+    EXPECT_EQ(messages.back().symbol, "JPM");
+
+    const auto& frontMessage = messages.front();
+    EXPECT_FALSE(frontMessage.symbol.empty());
+    EXPECT_GE(frontMessage.price, 0.0); // Price can be zero or positive
+    EXPECT_GE(frontMessage.quantity, 0); // Volume can be zero or positive
+    EXPECT_TRUE(frontMessage.side == OrderSide::BUY || frontMessage.side == OrderSide::SELL);
+    EXPECT_GE(frontMessage.timestamp.time_since_epoch().count(), 0); // Timestamp should be non-negative
 }
 
 TEST_F(MarketDataSimulatorTest, AcceleratedReplayShouldBeFaster) {
@@ -58,7 +65,7 @@ TEST_F(MarketDataSimulatorTest, AcceleratedReplayShouldBeFaster) {
     EXPECT_LT(duration.count(), 1000); // Should finish under 1s
 
     auto messages = drainQueue();
-    EXPECT_EQ(messages.size(), 4); // All 4 should've been emitted
+    EXPECT_EQ(messages.size(), 101); // All 101 should've been emitted
 }
 
 TEST_F(MarketDataSimulatorTest, FixedDelayModeEmitsAtControlledRate) {
@@ -69,4 +76,38 @@ TEST_F(MarketDataSimulatorTest, FixedDelayModeEmitsAtControlledRate) {
 
     auto messages = drainQueue();
     EXPECT_GE(messages.size(), 3); // Should emit ~3 messages in 300ms
+}
+
+TEST_F(MarketDataSimulatorTest, CanSwitchToFileSource) {
+    simulator->setSourceType(SourceType::FILE);
+    simulator->setReplayMode(ReplayMode::REALTIME);
+    
+    EXPECT_NO_THROW(simulator->start());
+    this_thread::sleep_for(50ms); // Let it do a little work
+    EXPECT_NO_THROW(simulator->stop());
+
+    auto messages = drainQueue();
+    EXPECT_GT(messages.size(), 0);
+}
+
+TEST_F(MarketDataSimulatorTest, CanSwitchToGeneratedSource) {
+    simulator->setSourceType(SourceType::GENERATED);
+    simulator->setReplayMode(ReplayMode::REALTIME);
+    
+    EXPECT_NO_THROW(simulator->start());
+    this_thread::sleep_for(50ms); // Let it do a little work
+    EXPECT_NO_THROW(simulator->stop());
+
+    // Check if messages were generated
+    EXPECT_GE(queue.size(), 1); // At least one message should be generated
+
+    auto messages = drainQueue();
+    EXPECT_GT(messages.size(), 0);
+
+    const auto& frontMessage = messages.front();
+    EXPECT_FALSE(frontMessage.symbol.empty());
+    EXPECT_GE(frontMessage.price, 0.0); // Price can be zero or positive
+    EXPECT_GE(frontMessage.quantity, 0); // Volume can be zero or positive
+    EXPECT_TRUE(frontMessage.side == OrderSide::BUY || frontMessage.side == OrderSide::SELL);
+    EXPECT_GE(frontMessage.timestamp.time_since_epoch().count(), 0); // Timestamp should be non-negative
 }

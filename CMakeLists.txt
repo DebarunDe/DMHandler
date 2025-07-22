@@ -51,6 +51,7 @@ endif()
 add_executable(DMHandler
     src/main.cpp
     src/MarketDataSimulator.cpp
+    src/MarketDataGenerator.cpp
 )
 
 target_include_directories(DMHandler
@@ -61,6 +62,7 @@ target_include_directories(DMHandler
 add_executable(tests_simulator
     tests/tests_simulator.cpp 
     src/MarketDataSimulator.cpp
+    src/MarketDataGenerator.cpp
 )
 
 add_executable(tests_thread_safe_message_queue
