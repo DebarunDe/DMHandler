@@ -27,7 +27,7 @@ private:
     void run();
 
     SourceType sourceType_ = SourceType::FILE; // default to csv
-    std::string filePath_ = "/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv"; // Path to the CSV file if using file source
+    std::string filePath_ = (std::filesystem::current_path() / "data/market_data.csv").string(); // Path to the CSV file if using file source
 
     ThreadSafeMessageQueue<MarketDataMessage>& messageQueue_;
     std::thread workerThread_;
