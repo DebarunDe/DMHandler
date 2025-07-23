@@ -34,7 +34,7 @@ TEST(ThreadSafeMessageQueueTest, PushAndPop) {
     EXPECT_TRUE(queue.empty());
 }
 
-TEST(ThreadSafeMessageQueue, SizeandTop) {
+TEST(ThreadSafeMessageQueueTest, SizeandTop) {
     ThreadSafeMessageQueue<int> queue;
     EXPECT_EQ(queue.size(), 0);
 
@@ -64,7 +64,7 @@ TEST(ThreadSafeMessageQueue, SizeandTop) {
     EXPECT_THROW(queue.top(), runtime_error);
 } 
 
-TEST(ThreadSafeMessageQueue, Clear) {
+TEST(ThreadSafeMessageQueueTest, Clear) {
     ThreadSafeMessageQueue<int> queue;
 
     queue.push(1);
@@ -78,7 +78,7 @@ TEST(ThreadSafeMessageQueue, Clear) {
     EXPECT_THROW(queue.top(), runtime_error);
 }
 
-TEST(ThreadSafeMessageQueue, PopWaits) {
+TEST(ThreadSafeMessageQueueTest, PopWaits) {
     ThreadSafeMessageQueue<int> queue;
 
     thread producer([&queue]() {
@@ -98,7 +98,7 @@ TEST(ThreadSafeMessageQueue, PopWaits) {
     EXPECT_TRUE(queue.empty());
 }
 
-TEST(ThreadSafeMessageQueue, StressTest) {
+TEST(ThreadSafeMessageQueueTest, StressTest) {
     ThreadSafeMessageQueue<int> queue;
 
     const int numThreads = 20;

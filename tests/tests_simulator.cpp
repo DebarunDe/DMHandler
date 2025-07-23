@@ -1,101 +1,113 @@
 #include <gtest/gtest.h>
-#include "../include/MarketDataSimulator.h"
 #include <cstdlib> // for getenv
+#include "../include/MarketDataSimulator.h"
+#include "../include/MarketDataMessage.h"
+#include "../include/ThreadSafeMessageQueue.h"
+
+#include <chrono>
+#include <thread>
 
 using namespace std;
-//clear && cmake .. && make && ctest 
+//clear && cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build && ./build/tests_simulator
 
-TEST(MarketDataSimulatorTest, DefaultConstructor) {
-    MarketDataSimulator sim;
-    EXPECT_EQ(sim.getDataSource(), "/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv");
-    EXPECT_FALSE(sim.isStatic());
-    EXPECT_EQ(sim.getMsgPerSecond(), 1'000);
-    EXPECT_TRUE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(),1'000);
-}
+class MarketDataSimulatorTest : public ::testing::Test {
+    protected:
+        ThreadSafeMessageQueue<MarketDataMessage> queue;
+        unique_ptr<MarketDataSimulator> simulator;
 
-TEST(MarketDataSimulatorTest, StaticConstructor) {
-    MarketDataSimulator sim(true);
-    EXPECT_EQ(sim.getDataSource(), "/Users/debarunde/VSCode/DMHandler/DMHandler/data/market_data.csv");
-    EXPECT_TRUE(sim.isStatic());
-    EXPECT_EQ(sim.getMsgPerSecond(), 1'000);
-    EXPECT_TRUE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(), 1'000);
-}
+        void SetUp()    override { simulator = make_unique<MarketDataSimulator>(queue); }
+        void TearDown() override { simulator->stop(); } //always stop the simulator 
+        
+        vector<MarketDataMessage> drainQueue() {
+            vector<MarketDataMessage> messages;
+            MarketDataMessage msg;
 
-TEST(MarketDataSimulatorTest, DynamicConstructor) {
-    MarketDataSimulator sim(500, false, 2'000);
-    EXPECT_EQ(sim.getDataSource(), "");
-    EXPECT_FALSE(sim.isStatic());
-    EXPECT_EQ(sim.getMsgPerSecond(), 500);
-    EXPECT_FALSE(sim.isRunUniform());
-    EXPECT_EQ(sim.getMsgCount(), 2'000);
-}
-
-TEST(MarketDataSimulatorTest, StaticReadsLinesCorrectly) {
-    int count = 0;
-    MarketDataSimulator sim; // Fast for test
-
-    sim.run([&count](const string& line) {
-        EXPECT_FALSE(line.empty());
-        count++;
-    });
-
-    EXPECT_GT(count, 0); // Expect at least one line was read
-}
-
-TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyUniform) {
-    int count = 0;
-    auto msgPerSecond = 1'000;
-    auto runUniform = true;
-    auto msgCount = 10'000;
-    MarketDataSimulator sim(msgPerSecond, runUniform, msgCount); // Fast for test
-
-    sim.run([&count](const string& line){
-        EXPECT_FALSE(line.empty());
-        count++;
-
-        // validate format of line
-        vector<string> parts;
-        stringstream ss(line);
-        string part;
-        while (getline(ss, part, ',')) parts.push_back(part); 
-        EXPECT_EQ(parts.size(), 5); // Expect 5 parts: ticker, price, quantity, order type, timestamp
-        EXPECT_FALSE(parts[0].empty()); // Ticker should not be empty
-        EXPECT_TRUE(stod(parts[1]) > 0); // Price should be a positive number
-        EXPECT_TRUE(stoi(parts[2]) > 0); // Quantity should be a positive integer
-        EXPECT_TRUE(parts[3] == "BUY" || parts[3] == "SELL"); // Order type should be either buy or sell
-        EXPECT_TRUE(stoll(parts[4]) > 0); // Timestamp should be a positive long
-    });
-
-    EXPECT_EQ(count, 10'000); // Expect exactly 10000 lines generated 
-}
-
-TEST(MarketDataSimulatorTest, DynamicGeneratesLinesCorrectlyNonUniform) {
-    if (std::getenv("CI") != nullptr) GTEST_SKIP() << "Skipping test in CI environment due to flakiness";
+            while (queue.tryPop(msg)) messages.push_back(msg);
+            return messages;
+        }
     
-    int count = 0;
-    auto msgPerSecond = 1'000;
-    auto runUniform = false;
-    auto msgCount = 10'000;
-    MarketDataSimulator sim(msgPerSecond, runUniform, msgCount); // Fast for test
+};
 
-    sim.run([&count](const string& line){
-        EXPECT_FALSE(line.empty());
-        count++;
+TEST_F(MarketDataSimulatorTest, StartAndStopDoesNotThrow) {
+    EXPECT_NO_THROW(simulator->start());
+    this_thread::sleep_for(50ms); // let it do a little work
+    EXPECT_NO_THROW(simulator->stop());
+}
 
-        // validate format of line
-        vector<string> parts;
-        stringstream ss(line);
-        string part;
-        while (getline(ss, part, ',')) parts.push_back(part); 
-        EXPECT_EQ(parts.size(), 5); // Expect 5 parts: ticker, price, quantity, order type, timestamp
-        EXPECT_FALSE(parts[0].empty()); // Ticker should not be empty
-        EXPECT_TRUE(stod(parts[1]) > 0); // Price should be a positive number
-        EXPECT_TRUE(stoi(parts[2]) > 0); // Quantity should be a positive integer
-        EXPECT_TRUE(parts[3] == "BUY" || parts[3] == "SELL"); // Order type should be either buy or sell
-        EXPECT_TRUE(stoll(parts[4]) > 0); // Timestamp should be a positive long
-    });
+TEST_F(MarketDataSimulatorTest, EmitsMessagesInRealtimeMode) {
+    simulator->setReplayMode(ReplayMode::REALTIME);
+    simulator->start();
+    this_thread::sleep_for(15s); // Let it emit all messages
+    simulator->stop();
 
-    EXPECT_EQ(count, 10'000); // Expect exactly 10000 lines generated 
+    auto messages = drainQueue();
+    EXPECT_GT(messages.size(), 0);
+    EXPECT_EQ(messages.front().symbol, "TSLA");
+    EXPECT_EQ(messages.back().symbol, "JPM");
+
+    const auto& frontMessage = messages.front();
+    EXPECT_FALSE(frontMessage.symbol.empty());
+    EXPECT_GE(frontMessage.price, 0.0); // Price can be zero or positive
+    EXPECT_GE(frontMessage.quantity, 0); // Volume can be zero or positive
+    EXPECT_TRUE(frontMessage.side == OrderSide::BUY || frontMessage.side == OrderSide::SELL);
+    EXPECT_GE(frontMessage.timestamp.time_since_epoch().count(), 0); // Timestamp should be non-negative
+}
+
+TEST_F(MarketDataSimulatorTest, AcceleratedReplayShouldBeFaster) {
+    auto start = chrono::steady_clock::now();
+    simulator->setReplayMode(ReplayMode::ACCELERATED, 10.0); // 10x faster
+    simulator->start();
+    this_thread::sleep_for(300ms);
+    simulator->stop();
+    auto end = chrono::steady_clock::now();
+
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    EXPECT_LT(duration.count(), 1000); // Should finish under 1s
+
+    auto messages = drainQueue();
+    EXPECT_EQ(messages.size(), 101); // All 101 should've been emitted
+}
+
+TEST_F(MarketDataSimulatorTest, FixedDelayModeEmitsAtControlledRate) {
+    simulator->setReplayMode(ReplayMode::FIXED_DELAY, 2.0); // 50ms per message
+    simulator->start();
+    this_thread::sleep_for(300ms);
+    simulator->stop();
+
+    auto messages = drainQueue();
+    EXPECT_GE(messages.size(), 3); // Should emit ~3 messages in 300ms
+}
+
+TEST_F(MarketDataSimulatorTest, CanSwitchToFileSource) {
+    simulator->setSourceType(SourceType::FILE);
+    simulator->setReplayMode(ReplayMode::REALTIME);
+    
+    EXPECT_NO_THROW(simulator->start());
+    this_thread::sleep_for(50ms); // Let it do a little work
+    EXPECT_NO_THROW(simulator->stop());
+
+    auto messages = drainQueue();
+    EXPECT_GT(messages.size(), 0);
+}
+
+TEST_F(MarketDataSimulatorTest, CanSwitchToGeneratedSource) {
+    simulator->setSourceType(SourceType::GENERATED);
+    simulator->setReplayMode(ReplayMode::REALTIME);
+    
+    EXPECT_NO_THROW(simulator->start());
+    this_thread::sleep_for(50ms); // Let it do a little work
+    EXPECT_NO_THROW(simulator->stop());
+
+    // Check if messages were generated
+    EXPECT_GE(queue.size(), 1); // At least one message should be generated
+
+    auto messages = drainQueue();
+    EXPECT_GT(messages.size(), 0);
+
+    const auto& frontMessage = messages.front();
+    EXPECT_FALSE(frontMessage.symbol.empty());
+    EXPECT_GE(frontMessage.price, 0.0); // Price can be zero or positive
+    EXPECT_GE(frontMessage.quantity, 0); // Volume can be zero or positive
+    EXPECT_TRUE(frontMessage.side == OrderSide::BUY || frontMessage.side == OrderSide::SELL);
+    EXPECT_GE(frontMessage.timestamp.time_since_epoch().count(), 0); // Timestamp should be non-negative
 }

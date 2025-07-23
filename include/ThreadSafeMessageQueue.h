@@ -28,10 +28,10 @@ public:
     ThreadSafeMessageQueue& operator=(ThreadSafeMessageQueue&&) = default;
 
     //accessors
-    const std::deque<T>& getQueue() const {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return queue_;
-    }
+    // const std::deque<T>& getQueue() const {
+    //     std::lock_guard<std::mutex> lock(mutex_);
+    //     return queue_;
+    // }
 
     //functions
     T pop() {
@@ -40,6 +40,15 @@ public:
         T item = std::move(queue_.front());
         queue_.pop_front();
         return item;
+    }
+
+    bool tryPop(T& item) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.empty()) return false;
+
+        item = std::move(queue_.front());
+        queue_.pop_front();
+        return true;
     }
 
     //rval push

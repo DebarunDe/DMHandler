@@ -1,31 +1,46 @@
 #pragma once
+
+#include "ThreadSafeMessageQueue.h"
+#include "MarketDataMessage.h"
+
 #include <string>
 #include <functional>
 #include <chrono>
+#include <thread>
+#include <atomic>
+#include <filesystem>
+
+enum class ReplayMode {
+    REALTIME,
+    ACCELERATED,
+    FIXED_DELAY
+};
+
+enum class SourceType {
+    FILE,
+    GENERATED
+};
 
 class MarketDataSimulator {
 private:
-    std::string dataSource_; // filepath 
-    bool isStatic_; // true if using static data from file, false if generating data dynamically
-    bool runUniform_; // true if running uniformly, false if running with random bursts/slowdowns
-    int msgPerSecond_; // number of messages per second to simulate
-    int msgCount_; // total number of messages to simulate
+    static std::vector<MarketDataMessage> loadFromFile(const std::string& filePath);
+    void run();
+
+    SourceType sourceType_ = SourceType::FILE; // default to csv
+    std::string filePath_ = (std::filesystem::current_path() / "data/market_data.csv").string(); // Path to the CSV file if using file source
+
+    ThreadSafeMessageQueue<MarketDataMessage>& messageQueue_;
+    std::thread workerThread_;
+    std::atomic<bool> running_;
+    ReplayMode replayMode_ = ReplayMode::REALTIME;
+    double replayFactor_ = 1.0; // Used for ACCELERATED mode
+
 public:
-    MarketDataSimulator();
-    //primarily used for static case from csv file
-    MarketDataSimulator(bool isStatic);
-    //primary used for dynamic case
-    MarketDataSimulator(int msgPerSecond, bool runUniform, int msgCount);
+    explicit MarketDataSimulator(ThreadSafeMessageQueue<MarketDataMessage>& messageQueue);
 
-    ~MarketDataSimulator();
-
-    std::string getDataSource()     const { return dataSource_;     };
-    bool        isStatic()          const { return isStatic_;       };
-    bool        isRunUniform()      const { return runUniform_;     };
-    int         getMsgPerSecond()   const { return msgPerSecond_;   };
-    int         getMsgCount()       const { return msgCount_;       };    
-
-    void sleep(std::chrono::microseconds interval);
-    void run(std::function<void(const std::string&)> callback);
+    void setSourceType(SourceType type);
+    void setReplayMode(ReplayMode mode, double factor = 1.0);
+    void start();
+    void stop();
 
 };
