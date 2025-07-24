@@ -35,18 +35,18 @@ vector<MarketDataMessage> MarketDataGenerator::generate() {
     uniform_int_distribution<int> sideDist(0,1); // 0 for BUY, 1 for SELL
     uniform_int_distribution<size_t> symbolIndexDist(0, config_.symbols.size() - 1);
 
-    auto now = chrono::steady_clock::now();
+    auto now = chrono::system_clock::now();
 
     for (size_t i = 0; i < config_.numMessages; ++i) {
         MarketDataMessage msg;
 
         msg.symbol = config_.symbols[symbolIndexDist(rng_)];
+        msg.side = static_cast<OrderSide>(sideDist(rng_));
         msg.price = priceDist(rng_);
         msg.quantity = static_cast<int>(quantityDist(rng_));
-        msg.side = static_cast<OrderSide>(sideDist(rng_));
         msg.timestamp = now + chrono::milliseconds(i * 50); // Increment timestamp by 50ms for each message
 
-        messages.push_back(msg);
+        messages.emplace_back(msg);
     }
 
     return messages;

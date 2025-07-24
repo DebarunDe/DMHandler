@@ -6,8 +6,8 @@
 
 struct MarketDataMessage {
     std::string symbol;
+    OrderSide side;
     double price;
     int quantity;
-    OrderSide side;
-    std::chrono::steady_clock::time_point timestamp;
+    std::chrono::system_clock::time_point timestamp;
 };
