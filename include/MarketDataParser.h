@@ -10,6 +10,9 @@ class MarketDataParser {
 private:
 
 public:
-    // Parse a market data message from a string
-    static std::optional<MarketDataMessage> parse(const std::string& message); //string specialization
+    MarketDataParser() = default;
+    virtual ~MarketDataParser() = default;
+
+    // Parse a market data message from a input
+    static std::optional<MarketDataMessage> parse(const std::string& line); //string specialization
 };
