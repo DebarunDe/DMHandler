@@ -49,7 +49,20 @@
         "thread": "cpp",
         "functional": "cpp",
         "fstream": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "__tree": "cpp",
+        "any": "cpp",
+        "charconv": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "span": "cpp",
+        "unordered_set": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

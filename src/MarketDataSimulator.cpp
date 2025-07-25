@@ -3,6 +3,7 @@
 #include "../include/ThreadSafeMessageQueue.h"
 #include "../include/OrderSide.h"
 #include "../include/MarketDataGenerator.h"
+#include "../include/MarketDataParser.h"
 
 #include <thread>
 #include <chrono>
@@ -10,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <optional>
 
 using namespace std;
 
@@ -48,27 +50,10 @@ vector<MarketDataMessage> MarketDataSimulator::loadFromFile(const string& filePa
     string line;
 
     while (getline(file, line)) {
-        istringstream iss(line);
-        string symbol, priceStr, quantityStr, sideStr, timestampStr;
+        auto message = MarketDataParser::parse(line);
 
-        if (!getline(iss, symbol, ',')) continue;
-        if (!getline(iss, priceStr, ',')) continue;
-        if (!getline(iss, quantityStr, ',')) continue;
-        if (!getline(iss, sideStr, ',')) continue;
-        if (!getline(iss, timestampStr, ',')) continue;
-
-        try {
-            double price = stod(priceStr);
-            int quantity = stoi(quantityStr);
-            OrderSide side = from_string(sideStr);
-            uint64_t rawTs = stoull(timestampStr);
-            auto timestamp = chrono::steady_clock::time_point(chrono::nanoseconds(rawTs));
-
-            messages.emplace_back(MarketDataMessage{symbol, price, quantity, side, timestamp});
-        } 
-        catch (const std::exception& e) {
-            throw std::runtime_error("Error parsing CSV line: " + line + " - " + e.what());
-        }
+        if (message.has_value()) messages.emplace_back(message.value());
+        else throw runtime_error("Failed to parse line: " + line);
     }
 
     return messages;
@@ -116,7 +101,7 @@ void MarketDataSimulator::run() {
         }
 
         MarketDataMessage emittedMessage = msg;
-        emittedMessage.timestamp = chrono::steady_clock::now();
+        emittedMessage.timestamp = chrono::system_clock::now();
         messageQueue_.push(emittedMessage);
     }
 

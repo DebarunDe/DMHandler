@@ -55,6 +55,7 @@ add_executable(DMHandler
     src/main.cpp
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
+    src/MarketDataParser.cpp
 )
 
 target_include_directories(DMHandler
@@ -66,6 +67,7 @@ add_executable(tests_simulator
     tests/tests_simulator.cpp 
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
+    src/MarketDataParser.cpp
 )
 
 add_executable(tests_thread_safe_message_queue
@@ -77,6 +79,11 @@ add_executable(tests_generator
     src/MarketDataGenerator.cpp
 )
 
+add_executable(tests_parser
+    tests/tests_parser.cpp
+    src/MarketDataParser.cpp
+)
+
 target_include_directories(tests_simulator 
     PRIVATE ${PROJECT_SOURCE_DIR}/include 
 )
@@ -86,6 +93,10 @@ target_include_directories(tests_thread_safe_message_queue
 )
 
 target_include_directories(tests_generator
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(tests_parser 
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
@@ -102,8 +113,13 @@ target_link_libraries(tests_generator
     gtest_main
 )
 
+target_link_libraries(tests_parser
+    gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(tests_simulator)
 gtest_discover_tests(tests_thread_safe_message_queue)
 gtest_discover_tests(tests_generator)
+gtest_discover_tests(tests_parser)
 #---------------------------------
