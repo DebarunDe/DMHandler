@@ -30,13 +30,14 @@ jobs:
       - name: Run cppcheck
         run: |
           cppcheck --enable=all --inconclusive --quiet \
-                   --suppress=missingIncludeSystem \
-                   --std=c++17 \
-                   --suppress=unusedFunction:include/OrderSide.h \
-                   --suppress=unusedFunction:tests/tests_simulator.cpp \
-                   --suppress=unusedFunction:tests/tests_feed_handler.cpp \
-                   --error-exitcode=1 \
-                   ./include ./src ./tests
+              --suppress=missingIncludeSystem \
+              --suppress=unmatchedSuppression \
+              --std=c++17 \
+              --suppress=unusedFunction:include/OrderSide.h \
+              --suppress=unusedFunction:tests/tests_simulator.cpp \
+              --suppress=unusedFunction:tests/tests_feed_handler.cpp \
+              --error-exitcode=1 \
+              ./include ./src ./tests
 
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
