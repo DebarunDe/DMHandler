@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <optional>
+#include <algorithm>
 
 using namespace std;
 
