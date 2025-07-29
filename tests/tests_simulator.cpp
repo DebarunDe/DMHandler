@@ -11,20 +11,19 @@ using namespace std;
 //clear && cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build && ./build/tests_simulator
 
 class MarketDataSimulatorTest : public ::testing::Test {
-    protected:
-        ThreadSafeMessageQueue<MarketDataMessage> queue;
-        unique_ptr<MarketDataSimulator> simulator;
-
-        void SetUp()    override { simulator = make_unique<MarketDataSimulator>(queue); }
-        void TearDown() override { simulator->stop(); } //always stop the simulator 
-        
-        vector<MarketDataMessage> drainQueue() {
-            vector<MarketDataMessage> messages;
-            MarketDataMessage msg;
-
-            while (queue.tryPop(msg)) messages.push_back(msg);
-            return messages;
-        }
+protected:
+    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    unique_ptr<MarketDataSimulator> simulator;
+    
+    void SetUp()    override { simulator = make_unique<MarketDataSimulator>(queue); }
+    void TearDown() override { simulator->stop(); } //always stop the simulator 
+    
+    vector<MarketDataMessage> drainQueue() {
+        vector<MarketDataMessage> messages;
+        MarketDataMessage msg;
+        while (queue.tryPop(msg)) messages.push_back(msg);
+        return messages;
+    }
     
 };
 
