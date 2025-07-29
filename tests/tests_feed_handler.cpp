@@ -3,6 +3,10 @@
 
 #include "../include/testSubscribers/LoggingSubscriber.h"
 
+#include <memory>
+#include <algorithm>
+#include <vector>
+
 using namespace std;
 
 class MarketDataFeedHandlerTest : public ::testing::Test {
