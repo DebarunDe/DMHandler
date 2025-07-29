@@ -14,10 +14,12 @@ protected:
     ThreadSafeMessageQueue<MarketDataMessage> queue;
     unique_ptr<MarketDataFeedHandler> feedHandler;
 
+    // cppcheck-suppress unusedFunction
     void SetUp()    override { 
         feedHandler = make_unique<MarketDataFeedHandler>(queue); 
         feedHandler->start(); 
     }
+    // cppcheck-suppress unusedFunction
     void TearDown() override { 
         // always stop the feed handler
         feedHandler->stop(); 
