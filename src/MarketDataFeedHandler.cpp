@@ -1,5 +1,7 @@
 #include "../include/MarketDataFeedHandler.h"
 
+#include <algorithm>
+
 using namespace std;
 
 MarketDataFeedHandler::MarketDataFeedHandler(ThreadSafeMessageQueue<MarketDataMessage>& messageQueue):
