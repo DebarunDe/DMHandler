@@ -93,6 +93,14 @@ add_executable(tests_feed_handler
     src/MarketDataParser.cpp
 )
 
+add_executable(tests_subscriber_loggingsubscriber 
+    tests/tests_subscriber_loggingsubscriber.cpp
+)
+
+add_executable(tests_subscriber_fileloggersubscriber 
+    tests/tests_subscriber_fileloggersubscriber.cpp
+)
+
 target_include_directories(tests_simulator 
     PRIVATE ${PROJECT_SOURCE_DIR}/include 
 )
@@ -110,6 +118,14 @@ target_include_directories(tests_parser
 )
 
 target_include_directories(tests_feed_handler
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(tests_subscriber_loggingsubscriber
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(tests_subscriber_fileloggersubscriber
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
@@ -134,10 +150,20 @@ target_link_libraries(tests_feed_handler
     gtest_main
 )
 
+target_link_libraries(tests_subscriber_loggingsubscriber
+    gtest_main
+)
+
+target_link_libraries(tests_subscriber_fileloggersubscriber
+    gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(tests_simulator)
 gtest_discover_tests(tests_thread_safe_message_queue)
 gtest_discover_tests(tests_generator)
 gtest_discover_tests(tests_parser)
 gtest_discover_tests(tests_feed_handler)
+gtest_discover_tests(tests_subscriber_loggingsubscriber)
+gtest_discover_tests(tests_subscriber_fileloggersubscriber)
 #---------------------------------

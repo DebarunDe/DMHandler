@@ -3,16 +3,16 @@
 #include "../MarketDataSubscriber.h"
 
 #include <iostream>
+#include <iomanip>
 
 class LoggingSubscriber : public IMarketDataSubscriber {
     public:
         void onMarketData(const MarketDataMessage& message) override {
-            std::cout << "Received Market Data: "
-                    << "[LOG] "
+            std::cout << "[LOG] "
                     << message.symbol << " "
                     << to_string(message.side) << ""
                     << " @"
-                    << message.price << " "
+                    << std::fixed << std::setprecision(2) << message.price << " "
                     << "x" << message.quantity 
             << std::endl;
         }

@@ -2,10 +2,12 @@
 #include "../include/MarketDataFeedHandler.h"
 
 #include "../include/testSubscribers/LoggingSubscriber.h"
+#include "../include/testSubscribers/FileLoggerSubscriber.h"
 
 #include <memory>
 #include <algorithm>
 #include <vector>
+#include <random>
 
 using namespace std;
 
@@ -224,4 +226,74 @@ TEST_F(MarketDataFeedHandlerTest, HandlesEarlyStopWithSimulator) {
     EXPECT_NO_THROW(feedHandler->start()); // Restarting after stop should not throw
     EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
     EXPECT_NO_THROW(feedHandler->stop());
+}
+
+TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
+    // Create file logger subscribers targeting a few shared files
+    vector<string> logPaths = {
+        "tests/testlogs/stress/test_market_data_1.log",
+        "tests/testlogs/stress/test_market_data_2.log",
+        "tests/testlogs/stress/test_market_data_3.log"
+    };
+
+    vector<shared_ptr<FileLoggerSubscriber>> fileLoggers;
+    for (size_t i = 0; i < 6; ++i) {
+        auto fileLogger = make_shared<FileLoggerSubscriber>(logPaths[i % logPaths.size()]);
+        fileLogger->start();
+        fileLoggers.push_back(fileLogger);
+        feedHandler->subscribe(fileLogger);
+    }
+
+    // Create multiple TestSubscribers
+    vector<shared_ptr<LoggingSubscriber>> loggingSubscribers;
+    for (int i = 0; i < 10; ++i) {
+        auto sub = make_shared<LoggingSubscriber>();
+        loggingSubscribers.push_back(sub);
+        feedHandler->subscribe(sub);
+    }
+
+    // Set up and start simulator
+    MarketDataSimulator simulator(queue);
+    simulator.setSourceType(SourceType::GENERATED);
+    simulator.setReplayMode(ReplayMode::ACCELERATED, 10.0); // Faster playback
+    simulator.start();
+
+    // Randomly subscribe/unsubscribe some logging subscribers in a background thread
+    atomic<bool> churnActive = true;
+    thread churnThread([&]() {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> actionDist(0, 1);
+        uniform_int_distribution<> indexDist(0, loggingSubscribers.size() - 1);
+
+        while (churnActive) {
+            int idx = indexDist(gen);
+            if (actionDist(gen) == 0) {
+                feedHandler->subscribe(loggingSubscribers[idx]);
+            } else {
+                feedHandler->unsubscribe(loggingSubscribers[idx]);
+            }
+            this_thread::sleep_for(chrono::milliseconds(30));
+        }
+    });
+
+    // Let system run under stress for a short time
+    this_thread::sleep_for(chrono::seconds(5));
+
+    // Stop simulator, churn thread, and file loggers
+    churnActive = false;
+    churnThread.join();
+    simulator.stop();
+
+    for (auto& fileLogger : fileLoggers) {
+        fileLogger->stop();
+        feedHandler->unsubscribe(fileLogger);
+    }
+
+    for (auto& sub : loggingSubscribers) {
+        feedHandler->unsubscribe(sub);
+    }
+
+    // No crash should occur, if we reached here the test passed
+    SUCCEED();
 }
