@@ -25,7 +25,7 @@ jobs:
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
-        run: clang-tidy -p build $(find ./src ./include ./tests -name '*.cpp')
+        run: clang-tidy -p build $(find ./src ./include ./tests ./utility -name '*.cpp')
 
       - name: Run cppcheck
         run: |
@@ -37,7 +37,7 @@ jobs:
               --suppress=unusedFunction:tests/tests_simulator.cpp \
               --suppress=unusedFunction:tests/tests_feed_handler.cpp \
               --error-exitcode=1 \
-              ./include ./src ./tests
+              ./include ./src ./tests ./utility
 
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
