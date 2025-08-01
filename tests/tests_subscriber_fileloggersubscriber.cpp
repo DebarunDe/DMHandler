@@ -40,15 +40,5 @@ TEST(FileLoggerSubscriber, LogsMarketDataMessage) {
     getline(logFile, line);
     logFile.close();
 
-    // Check if the line contains expected values
-    stringstream expectedStream;
-    auto timestamp = chrono::system_clock::to_time_t(msg.timestamp);
-    expectedStream << std::put_time(std::localtime(&timestamp), "%m-%d-%Y %H:%M:%S") << " "
-                    << msg.symbol << " "
-                    << to_string(msg.side) << " "
-                    << std::fixed << std::setprecision(2) << msg.price << " "
-                    << "x" << msg.quantity;
-
-    string expectedLine = expectedStream.str();
     EXPECT_TRUE(line.find("AAPL BUY 150.00 x100") != std::string::npos);
 }

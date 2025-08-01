@@ -105,7 +105,7 @@ public:
             fileLogger_.start();
         }
     
-    FileLoggerSubscriber(const std::string& filename):
+    explicit FileLoggerSubscriber(const std::string& filename):
         filename_(filename),
         fileLogger_(filename)
         {
