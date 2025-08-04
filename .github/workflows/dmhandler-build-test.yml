@@ -37,12 +37,12 @@ jobs:
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --quiet \
+          cppcheck --enable=all --inconclusive --quiet --force \
             --std=c++17 \
             --error-exitcode=1 \
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
-            --suppress=toomanyconfigs \ 
+            --suppress=toomanyconfigs \
             --suppress=unusedFunction:include/OrderSide.h \
             --suppress=unusedFunction:tests/tests_simulator.cpp \
             --suppress=unusedFunction:tests/tests_feed_handler.cpp \
@@ -53,9 +53,7 @@ jobs:
             -i third_party/crow \
             -i third_party/asio \
             ./include ./src ./tests ./utility
-
-
-
+      
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
