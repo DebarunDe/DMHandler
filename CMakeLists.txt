@@ -47,7 +47,7 @@ endif()
 option(CODE_COVERAGE "Enable code coverage" OFF)
 if(CODE_COVERAGE)
     message(STATUS "Code coverage enabled")
-    add_compile_options(--coverage)
+    add_compile_options(--coverage -fprofile-update=atomic)
     link_libraries(gcov)
 endif()
 
