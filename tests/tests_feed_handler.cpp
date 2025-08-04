@@ -3,11 +3,16 @@
 
 #include "../include/testSubscribers/LoggingSubscriber.h"
 #include "../include/testSubscribers/FileLoggerSubscriber.h"
+#include "../include/testSubscribers/MarketStatsDataSubscriber.h"
+#include "../include/rest/MarketDataRestHandler.h"
 
+#include <curl/curl.h>
 #include <memory>
 #include <algorithm>
 #include <vector>
 #include <random>
+#include <regex>
+#include <cmath>
 
 using namespace std;
 
@@ -27,6 +32,26 @@ protected:
         feedHandler->stop(); 
     } 
 };
+
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+std::string httpGet(const std::string& url) {
+    CURL* curl = curl_easy_init();
+    std::string response;
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        CURLcode res = curl_easy_perform(curl);
+        if(res != CURLE_OK)
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        curl_easy_cleanup(curl);
+    }
+    return response;
+}
 
 TEST_F(MarketDataFeedHandlerTest, SubscribeAndUnsubscribe) {
     auto loggingSubscriber = make_shared<LoggingSubscriber>();
@@ -236,8 +261,15 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
         "tests/testlogs/stress/test_market_data_3.log"
     };
 
+    std::unordered_map<std::string, std::streamoff> initialSizes;
+    for (const auto& path : logPaths) {
+        ifstream file(path, ios::binary | ios::ate);
+        initialSizes[path] = file.is_open()? static_cast<std::streamoff>(file.tellg()) : std::streamoff(0);
+    }
+
+
     vector<shared_ptr<FileLoggerSubscriber>> fileLoggers;
-    for (size_t i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         auto fileLogger = make_shared<FileLoggerSubscriber>(logPaths[i % logPaths.size()]);
         fileLogger->start();
         fileLoggers.push_back(fileLogger);
@@ -251,6 +283,19 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
         loggingSubscribers.push_back(sub);
         feedHandler->subscribe(sub);
     }
+
+    vector<shared_ptr<MarketDataStatsSubscriber>> statsSubscribers;
+    auto statsTracker = make_shared<MarketDataStatsTracker>();
+    for (int i = 0; i < 10; ++i) {
+        auto statsSub = make_shared<MarketDataStatsSubscriber>(statsTracker);
+        statsSubscribers.push_back(statsSub);
+        feedHandler->subscribe(statsSub);
+    }
+
+    // rest api
+    auto restApi = make_unique<MarketDataRestApi>(statsTracker);
+    restApi->start(18080);
+    this_thread::sleep_for(chrono::milliseconds(500));
 
     // Set up and start simulator
     MarketDataSimulator simulator(queue);
@@ -270,15 +315,19 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
             int idx = indexDist(gen);
             if (actionDist(gen) == 0) {
                 feedHandler->subscribe(loggingSubscribers[idx]);
+                feedHandler->subscribe(fileLoggers[idx]);
+                feedHandler->subscribe(statsSubscribers[idx]);
             } else {
                 feedHandler->unsubscribe(loggingSubscribers[idx]);
+                feedHandler->unsubscribe(fileLoggers[idx]);
+                feedHandler->unsubscribe(statsSubscribers[idx]);
             }
             this_thread::sleep_for(chrono::milliseconds(30));
         }
     });
 
-    // Let system run under stress for a short time
-    this_thread::sleep_for(chrono::seconds(5));
+    // Let system run under stress for a long time
+    this_thread::sleep_for(chrono::seconds(60));
 
     // Stop simulator, churn thread, and file loggers
     churnActive = false;
@@ -292,6 +341,31 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
 
     for (auto& sub : loggingSubscribers) {
         feedHandler->unsubscribe(sub);
+    }
+
+    for (auto& statsSub : statsSubscribers) {
+        feedHandler->unsubscribe(statsSub);
+    }
+
+    std::string response = httpGet("http://localhost:18080/stats/AAPL");
+
+    EXPECT_FALSE(response.empty());
+    EXPECT_NE(response.find("averagePrice"), std::string::npos);
+    EXPECT_NE(response.find("lastPrice"), std::string::npos);
+    EXPECT_NE(response.find("lowPrice"), std::string::npos);
+    EXPECT_NE(response.find("highPrice"), std::string::npos);
+
+    if (restApi) {
+        restApi->stop();
+        restApi.reset();
+    }
+
+    for (const auto& path : logPaths) {
+        std::ifstream file(path, std::ios::binary | std::ios::ate);
+        ASSERT_TRUE(file.is_open()) << "Log file " << path << " could not be opened.";
+        auto finalSize = file.tellg();
+        file.close();
+        EXPECT_GT(finalSize, initialSizes[path]) << "Log file " << path << " was not updated during the test.";
     }
 
     // No crash should occur, if we reached here the test passed

@@ -45,3 +45,6 @@
 
 #test log files
 /tests/testlogs
+
+#main log folder
+/logs/

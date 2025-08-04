@@ -24,6 +24,9 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+#--------Add curl--------
+find_package(CURL REQUIRED)
+
 #--------- Code Coverage Tools ---------
 # Enable clang-tidy if available
 find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
@@ -57,11 +60,21 @@ add_executable(DMHandler
     src/MarketDataGenerator.cpp
     src/MarketDataParser.cpp
     src/MarketDataFeedHandler.cpp
+    src/rest/MarketDataRestHandler.cpp
 )
 
 target_include_directories(DMHandler
-    PRIVATE ${PROJECT_SOURCE_DIR}/include 
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include 
+        ${PROJECT_SOURCE_DIR}/third_party/crow/include
+        ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
 )   
+
+target_link_libraries(DMHandler
+    PRIVATE 
+        pthread
+        CURL::libcurl
+)
 
 #------- Unit Tests -------
 add_executable(tests_simulator
@@ -91,6 +104,7 @@ add_executable(tests_feed_handler
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
     src/MarketDataParser.cpp
+    src/rest/MarketDataRestHandler.cpp
 )
 
 add_executable(tests_subscriber_loggingsubscriber 
@@ -99,6 +113,15 @@ add_executable(tests_subscriber_loggingsubscriber
 
 add_executable(tests_subscriber_fileloggersubscriber 
     tests/tests_subscriber_fileloggersubscriber.cpp
+)
+
+add_executable(tests_statsdatasubscriber
+    tests/tests_statsdatasubscriber.cpp
+)
+
+add_executable(tests_marketdataresthandler
+    tests/tests_marketdataresthandler.cpp
+    src/rest/MarketDataRestHandler.cpp
 )
 
 target_include_directories(tests_simulator 
@@ -118,7 +141,10 @@ target_include_directories(tests_parser
 )
 
 target_include_directories(tests_feed_handler
-    PRIVATE ${PROJECT_SOURCE_DIR}/include
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/third_party/crow/include
+        ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
 )
 
 target_include_directories(tests_subscriber_loggingsubscriber
@@ -128,6 +154,18 @@ target_include_directories(tests_subscriber_loggingsubscriber
 target_include_directories(tests_subscriber_fileloggersubscriber
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
+
+target_include_directories(tests_statsdatasubscriber
+    PRIVATE ${PROJECT_SOURCE_DIR}/include
+)
+
+target_include_directories(tests_marketdataresthandler
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/third_party/crow/include
+        ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
+)
+
 
 #-------- Link Libraries -------
 target_link_libraries(tests_simulator
@@ -148,6 +186,7 @@ target_link_libraries(tests_parser
 
 target_link_libraries(tests_feed_handler
     gtest_main
+    CURL::libcurl
 )
 
 target_link_libraries(tests_subscriber_loggingsubscriber
@@ -158,12 +197,25 @@ target_link_libraries(tests_subscriber_fileloggersubscriber
     gtest_main
 )
 
+target_link_libraries(tests_statsdatasubscriber
+    gtest_main
+)
+
+target_link_libraries(tests_marketdataresthandler
+    gtest_main
+    CURL::libcurl
+)
+
 include(GoogleTest)
 gtest_discover_tests(tests_simulator)
 gtest_discover_tests(tests_thread_safe_message_queue)
 gtest_discover_tests(tests_generator)
 gtest_discover_tests(tests_parser)
-gtest_discover_tests(tests_feed_handler)
+gtest_discover_tests(tests_feed_handler
+    PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
 gtest_discover_tests(tests_subscriber_loggingsubscriber)
 gtest_discover_tests(tests_subscriber_fileloggersubscriber)
+gtest_discover_tests(tests_statsdatasubscriber)
+gtest_discover_tests(tests_marketdataresthandler)
 #---------------------------------
