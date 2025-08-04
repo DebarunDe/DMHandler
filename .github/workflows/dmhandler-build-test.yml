@@ -46,10 +46,9 @@ jobs:
             -I utility \
             -I third_party/crow/include \
             -I third_party/asio/asio/include \
-            ./include ./src ./tests ./utility \
             --exclude=third_party/crow \
-            --exclude=third_party/asio
-
+            --exclude=third_party/asio \
+            ./include ./src ./tests ./utility
 
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
