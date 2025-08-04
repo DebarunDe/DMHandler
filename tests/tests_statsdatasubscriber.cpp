@@ -78,7 +78,6 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleSymbols) {
 
 TEST(MarketStatsDataSubscriber, HandlesEmptyStats) {
     auto statsTracker = make_shared<MarketDataStatsTracker>();
-    MarketDataStatsSubscriber subscriber(statsTracker);
 
     auto stats = statsTracker->getStats("AAPL");
 

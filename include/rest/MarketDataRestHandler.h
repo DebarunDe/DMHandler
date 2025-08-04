@@ -18,7 +18,7 @@ private:
     void runServer(uint16_t port);
 
 public:
-    MarketDataRestApi(std::shared_ptr<MarketDataStatsTracker> statsTracker);
+    explicit MarketDataRestApi(std::shared_ptr<MarketDataStatsTracker> statsTracker);
     ~MarketDataRestApi();
 
     // No copies allowed
