@@ -42,6 +42,7 @@ jobs:
             --error-exitcode=1 \
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
+            --suppress=toomanyconfigs \ 
             --suppress=unusedFunction:include/OrderSide.h \
             --suppress=unusedFunction:tests/tests_simulator.cpp \
             --suppress=unusedFunction:tests/tests_feed_handler.cpp \
