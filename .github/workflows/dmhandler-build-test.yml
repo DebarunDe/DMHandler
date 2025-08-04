@@ -23,8 +23,11 @@ jobs:
       - name: Install libcurl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
-      - name: Install clang-tidy and cppcheck
-        run: sudo apt-get install -y clang-tidy cppcheck
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
 
       - name: Configure CMake (Debug + Analysis)
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
