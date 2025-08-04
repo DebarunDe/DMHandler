@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <mutex>
 #include <algorithm>
+#include <memory>
+#include <unordered_map>
 
 struct SymbolStats {
     double lastPrice = 0.00;
