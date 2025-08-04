@@ -16,11 +16,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-
-      - name: Verify Crow submodule
-        run: |
-          ls -l third_party/crow/include/
-          test -f third_party/crow/include/crow.h
           
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
@@ -46,7 +41,7 @@ jobs:
               --suppress=unusedFunction:include/OrderSide.h \
               --suppress=unusedFunction:tests/tests_simulator.cpp \
               --suppress=unusedFunction:tests/tests_feed_handler.cpp \
-              -I include -I utility \
+              -I include -I utility -I third_party/crow/include \
               --error-exitcode=1 \
               ./include ./src ./tests ./utility
       - name: Configure CMake for Coverage
