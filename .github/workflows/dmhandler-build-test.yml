@@ -34,18 +34,22 @@ jobs:
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --quiet \
+          cppcheck --enable=all --inconclusive --force --quiet \
+            --std=c++17 \
+            --error-exitcode=1 \
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
             --suppress=*:third_party/crow/* \
             --suppress=*:third_party/asio/* \
-            --std=c++17 \
             --suppress=unusedFunction:include/OrderSide.h \
             --suppress=unusedFunction:tests/tests_simulator.cpp \
             --suppress=unusedFunction:tests/tests_feed_handler.cpp \
-            -I include -I utility -I third_party/crow/include -I third_party/asio/asio/include \
-            --error-exitcode=1 \
+            -I include \
+            -I utility \
+            -I third_party/crow/include \
+            -I third_party/asio/asio/include \
             ./include ./src ./tests ./utility
+            
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
