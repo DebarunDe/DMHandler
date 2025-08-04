@@ -37,7 +37,7 @@ jobs:
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --force --quiet \
+          cppcheck --enable=all --inconclusive --quiet \
             --std=c++17 \
             --error-exitcode=1 \
             --suppress=missingIncludeSystem \
@@ -48,10 +48,10 @@ jobs:
             -I include \
             -I utility \
             -I third_party/crow/include \
-            -I third_party/asio/asio/include \
             -i third_party/crow \
             -i third_party/asio \
             ./include ./src ./tests ./utility
+
 
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
