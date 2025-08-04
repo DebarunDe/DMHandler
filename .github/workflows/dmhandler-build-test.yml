@@ -18,6 +18,9 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
 
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
       - name: Install clang-tidy and cppcheck
         run: sudo apt-get install -y clang-tidy cppcheck
 
