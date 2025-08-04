@@ -17,7 +17,11 @@ jobs:
         with:
           submodules: recursive
 
-
+      - name: Verify Crow submodule
+        run: |
+          ls -l third_party/crow/include/
+          test -f third_party/crow/include/crow.h
+          
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
 
