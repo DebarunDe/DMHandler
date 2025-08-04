@@ -115,8 +115,8 @@ add_executable(tests_subscriber_fileloggersubscriber
     tests/tests_subscriber_fileloggersubscriber.cpp
 )
 
-add_executable(tests_statsdatasubscriber
-    tests/tests_statsdatasubscriber.cpp
+add_executable(tests_subscriber_statsdatasubscriber
+    tests/tests_subscriber_statsdatasubscriber.cpp
 )
 
 add_executable(tests_marketdataresthandler
@@ -155,7 +155,7 @@ target_include_directories(tests_subscriber_fileloggersubscriber
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
-target_include_directories(tests_statsdatasubscriber
+target_include_directories(tests_subscriber_statsdatasubscriber
     PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
@@ -197,7 +197,7 @@ target_link_libraries(tests_subscriber_fileloggersubscriber
     gtest_main
 )
 
-target_link_libraries(tests_statsdatasubscriber
+target_link_libraries(tests_subscriber_statsdatasubscriber
     gtest_main
 )
 
@@ -216,6 +216,6 @@ gtest_discover_tests(tests_feed_handler
 )
 gtest_discover_tests(tests_subscriber_loggingsubscriber)
 gtest_discover_tests(tests_subscriber_fileloggersubscriber)
-gtest_discover_tests(tests_statsdatasubscriber)
+gtest_discover_tests(tests_subscriber_statsdatasubscriber)
 gtest_discover_tests(tests_marketdataresthandler)
 #---------------------------------

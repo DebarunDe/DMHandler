@@ -6,6 +6,8 @@
 #include "../include/testSubscribers/MarketStatsDataSubscriber.h"
 #include "../include/rest/MarketDataRestHandler.h"
 
+#include "tests_helper.h"
+
 #include <curl/curl.h>
 #include <memory>
 #include <algorithm>
@@ -32,26 +34,6 @@ protected:
         feedHandler->stop(); 
     } 
 };
-
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
-    return size * nmemb;
-}
-
-std::string httpGet(const std::string& url) {
-    CURL* curl = curl_easy_init();
-    std::string response;
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-        CURLcode res = curl_easy_perform(curl);
-        if(res != CURLE_OK)
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        curl_easy_cleanup(curl);
-    }
-    return response;
-}
 
 TEST_F(MarketDataFeedHandlerTest, SubscribeAndUnsubscribe) {
     auto loggingSubscriber = make_shared<LoggingSubscriber>();
