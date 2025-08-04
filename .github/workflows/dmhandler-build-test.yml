@@ -49,8 +49,8 @@ jobs:
             -I utility \
             -I third_party/crow/include \
             -I third_party/asio/asio/include \
-            --exclude=third_party/crow \
-            --exclude=third_party/asio \
+            -i third_party/crow \
+            -i third_party/asio \
             ./include ./src ./tests ./utility
 
       - name: Configure CMake for Coverage
