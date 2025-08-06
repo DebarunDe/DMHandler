@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../testSubscribers/MarketStatsDataSubscriber.h"
+#include "../MarketDataStatsTracker.h"
 
 #include "crow.h"
 #include <memory>

@@ -5,6 +5,9 @@
 #include "../include/testSubscribers/MarketStatsDataSubscriber.h"
 
 #include "../include/rest/MarketDataRestHandler.h"
+#include "../include/parser/FileMarketDataParser.h"
+#include "../include/parser/GeneratedMarketDataParser.h"
+#include "../include/parser/MarketDataParserRegistry.h"
 
 #include <iostream>
 #include <csignal>
@@ -31,6 +34,9 @@ int main() {
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
+    // Register parsers
+    registerParsers();
+
     // Shared queue and feed handler
     ThreadSafeMessageQueue<MarketDataMessage> queue;
     MarketDataFeedHandler feedHandler(queue);
@@ -54,8 +60,22 @@ int main() {
     cout << "[INFO] REST API server running on http://localhost:18080\n";
 
     // Start simulator: phase 1 — from file
-    MarketDataSimulator simulator(queue);
-    simulator.setSourceType(SourceType::FILE);
+    // Create parser for file data
+    auto fileParser = make_unique<FileMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        auto parsedMsg = fileParser->parse(rawLine);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        queue.push(msg);
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
     simulator.setReplayMode(ReplayMode::REALTIME);
     simulator.start();
 
@@ -64,9 +84,25 @@ int main() {
     simulator.stop();
 
     // Phase 2 — generated data, accelerated
-    simulator.setSourceType(SourceType::GENERATED);
-    simulator.setReplayMode(ReplayMode::ACCELERATED, 5.0);
-    simulator.start();
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Update sink functions for generated mode
+    auto generatedFileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedGeneratedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    // Create new simulator instance for generated mode
+    MarketDataSimulator generatedSimulator(generatedFileSink, generatedGeneratedSink, SourceType::GENERATED);
+    generatedSimulator.setReplayMode(ReplayMode::ACCELERATED, 5.0);
+    generatedSimulator.start();
 
     cout << "[INFO] Phase 2: GENERATED source, ACCELERATED replay\n";
     while (!shutdownRequested) {
@@ -74,7 +110,7 @@ int main() {
     }
 
     // Cleanup
-    simulator.stop();
+    generatedSimulator.stop();
     restApi->stop();
     feedHandler.stop();
     fileLogger->stop();

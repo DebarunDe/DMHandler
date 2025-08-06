@@ -3,6 +3,8 @@
 #include "../include/testSubscribers/MarketStatsDataSubscriber.h"
 
 #include "../include/MarketDataMessage.h"
+#include "../include/MarketDataStatsTracker.h"
+#include "../include/SymbolStats.h"
 
 #include <chrono>
 
@@ -28,8 +30,8 @@ TEST(MarketStatsDataSubscriber, UpdatesStatsCorrectly) {
         .timestamp = chrono::system_clock::now()
     };
 
-    subscriber.onMarketData(msg1);
-    subscriber.onMarketData(msg2);
+    statsTracker->update(msg1);
+    statsTracker->update(msg2);
 
     auto stats = statsTracker->getStats("AAPL");
 
@@ -61,8 +63,8 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleSymbols) {
         .timestamp = chrono::system_clock::now()
     };
 
-    subscriber.onMarketData(msg1);
-    subscriber.onMarketData(msg2);
+    statsTracker->update(msg1);
+    statsTracker->update(msg2);
 
     auto aaplStats = statsTracker->getStats("AAPL");
     auto googlStats = statsTracker->getStats("GOOGL");
@@ -109,8 +111,8 @@ TEST(MarketStatsDataSubscriber, UpdatesStatsWithSameSymbol) {
         .timestamp = chrono::system_clock::now()
     };
 
-    subscriber.onMarketData(msg1);
-    subscriber.onMarketData(msg2);
+    statsTracker->update(msg1);
+    statsTracker->update(msg2);
 
     auto stats = statsTracker->getStats("AAPL");
 
@@ -132,7 +134,7 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleUpdates) {
             .quantity = 10 + i,
             .timestamp = chrono::system_clock::now()
         };
-        subscriber.onMarketData(msg);
+        statsTracker->update(msg);
     }
 
     auto stats = statsTracker->getStats("JPM");

@@ -58,9 +58,13 @@ add_executable(DMHandler
     src/main.cpp
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
-    src/MarketDataParser.cpp
+    src/parser/FileMarketDataParser.cpp
+    src/parser/GeneratedMarketDataParser.cpp
+    src/parser/MarketDataParserFactory.cpp
+    src/parser/MarketDataParserRegistry.cpp
     src/MarketDataFeedHandler.cpp
     src/rest/MarketDataRestHandler.cpp
+    src/MarketDataStatsTracker.cpp
 )
 
 target_include_directories(DMHandler
@@ -81,7 +85,10 @@ add_executable(tests_simulator
     tests/tests_simulator.cpp 
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
-    src/MarketDataParser.cpp
+    src/parser/FileMarketDataParser.cpp
+    src/parser/GeneratedMarketDataParser.cpp
+    src/parser/MarketDataParserFactory.cpp
+    src/parser/MarketDataParserRegistry.cpp
 )
 
 add_executable(tests_thread_safe_message_queue
@@ -95,7 +102,10 @@ add_executable(tests_generator
 
 add_executable(tests_parser
     tests/tests_parser.cpp
-    src/MarketDataParser.cpp
+    src/parser/FileMarketDataParser.cpp
+    src/parser/GeneratedMarketDataParser.cpp
+    src/parser/MarketDataParserFactory.cpp
+    src/parser/MarketDataParserRegistry.cpp
 )
 
 add_executable(tests_feed_handler 
@@ -103,8 +113,12 @@ add_executable(tests_feed_handler
     src/MarketDataFeedHandler.cpp
     src/MarketDataSimulator.cpp
     src/MarketDataGenerator.cpp
-    src/MarketDataParser.cpp
+    src/parser/FileMarketDataParser.cpp
+    src/parser/GeneratedMarketDataParser.cpp
+    src/parser/MarketDataParserFactory.cpp
+    src/parser/MarketDataParserRegistry.cpp
     src/rest/MarketDataRestHandler.cpp
+    src/MarketDataStatsTracker.cpp
 )
 
 add_executable(tests_subscriber_loggingsubscriber 
@@ -117,11 +131,13 @@ add_executable(tests_subscriber_fileloggersubscriber
 
 add_executable(tests_subscriber_statsdatasubscriber
     tests/tests_subscriber_statsdatasubscriber.cpp
+    src/MarketDataStatsTracker.cpp
 )
 
 add_executable(tests_marketdataresthandler
     tests/tests_marketdataresthandler.cpp
     src/rest/MarketDataRestHandler.cpp
+    src/MarketDataStatsTracker.cpp
 )
 
 target_include_directories(tests_simulator 

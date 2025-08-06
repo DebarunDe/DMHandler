@@ -1,12 +1,9 @@
-#include "../include/MarketDataParser.h"
-#include "../include/MarketDataMessage.h"
-#include "../include/OrderSide.h"
+#include "../../include/parser/FileMarketDataParser.h"
+#include "../../include/OrderSide.h"
 
-#include <string>
 #include <sstream>
 #include <stdexcept>
 #include <chrono>
-#include <optional>
 
 using namespace std;
 
@@ -17,7 +14,7 @@ inline std::string trim(const std::string& s) {
     return s.substr(start, end - start + 1);
 }
 
-optional<MarketDataMessage> MarketDataParser::parse(const std::string& line) {
+optional<MarketDataMessage> FileMarketDataParser::parse(const std::string& line) {
     istringstream iss(line);
 
     string symbol, sideStr, priceStr, sizeStr, timestampStr;
@@ -45,4 +42,9 @@ optional<MarketDataMessage> MarketDataParser::parse(const std::string& line) {
     } catch (...) {
         return nullopt; // Return nullopt if any parsing error occurs
     }
+}
+
+optional<MarketDataMessage> FileMarketDataParser::parse(const MarketDataMessage& line) {
+    // Pass-through or basic validation logic
+    return line;
 }

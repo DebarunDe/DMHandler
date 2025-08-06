@@ -1,11 +1,13 @@
 #include "../include/MarketDataFeedHandler.h"
 
 #include <algorithm>
+#include <memory>
 
 using namespace std;
 
 MarketDataFeedHandler::MarketDataFeedHandler(ThreadSafeMessageQueue<MarketDataMessage>& messageQueue):
     messageQueue_(messageQueue),
+    statsTracker_(make_shared<MarketDataStatsTracker>()),
     running_(false)
     { }
 
@@ -42,6 +44,7 @@ void MarketDataFeedHandler::dispatchLoop() {
 
         if (messageQueue_.tryPop(msg)) {
             lock_guard<mutex> lock(subscriberMutex_);
+            statsTracker_->update(msg);
             for (const auto& sub : subscribers_) {
                 if (sub) sub->onMarketData(msg);
             }

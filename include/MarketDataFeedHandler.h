@@ -5,7 +5,8 @@
 #include "MarketDataMessage.h"
 #include "MarketDataSimulator.h"
 #include "MarketDataSubscriber.h"
-#include "MarketDataParser.h"
+#include "MarketDataStatsTracker.h"
+#include "SymbolStats.h"
 
 
 #include <string>
@@ -20,6 +21,7 @@
 class MarketDataFeedHandler {
 private:
     ThreadSafeMessageQueue<MarketDataMessage>& messageQueue_;
+    std::shared_ptr<MarketDataStatsTracker> statsTracker_;
 
     std::vector<std::shared_ptr<IMarketDataSubscriber>> subscribers_;
     std::mutex subscriberMutex_;

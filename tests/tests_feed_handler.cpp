@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include "../include/MarketDataFeedHandler.h"
+#include "../include/parser/MarketDataParserRegistry.h"
+#include "../include/parser/FileMarketDataParser.h"
+#include "../include/parser/GeneratedMarketDataParser.h"
 
 #include "../include/testSubscribers/LoggingSubscriber.h"
 #include "../include/testSubscribers/FileLoggerSubscriber.h"
@@ -25,6 +28,7 @@ protected:
 
     // cppcheck-suppress unusedFunction
     void SetUp()    override { 
+        registerParsers(); // Register parsers before use
         feedHandler = make_unique<MarketDataFeedHandler>(queue); 
         feedHandler->start(); 
     }
@@ -183,8 +187,22 @@ TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnCSVModeAndMultipleSub
     feedHandler->subscribe(loggingSubscriber1);
     feedHandler->subscribe(loggingSubscriber2);
 
-    MarketDataSimulator simulator(queue);
-    simulator.setSourceType(SourceType::FILE);
+    // Create parser for file data
+    auto fileParser = make_unique<FileMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        auto parsedMsg = fileParser->parse(rawLine);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        queue.push(msg);
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
     simulator.setReplayMode(ReplayMode::REALTIME);
     simulator.start();
 
@@ -203,8 +221,22 @@ TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnGeneratedModeAndMulti
     feedHandler->subscribe(loggingSubscriber1);
     feedHandler->subscribe(loggingSubscriber2);
 
-    MarketDataSimulator simulator(queue);
-    simulator.setSourceType(SourceType::GENERATED);
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
     simulator.setReplayMode(ReplayMode::REALTIME);
     simulator.start();
 
@@ -220,8 +252,22 @@ TEST_F(MarketDataFeedHandlerTest, HandlesEarlyStopWithSimulator) {
     auto loggingSubscriber = make_shared<LoggingSubscriber>();
     feedHandler->subscribe(loggingSubscriber);
 
-    MarketDataSimulator simulator(queue);
-    simulator.setSourceType(SourceType::GENERATED);
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
     simulator.setReplayMode(ReplayMode::REALTIME);
     
     EXPECT_NO_THROW(simulator.start());
@@ -280,8 +326,22 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
     this_thread::sleep_for(chrono::milliseconds(500));
 
     // Set up and start simulator
-    MarketDataSimulator simulator(queue);
-    simulator.setSourceType(SourceType::GENERATED);
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
     simulator.setReplayMode(ReplayMode::ACCELERATED, 10.0); // Faster playback
     simulator.start();
 
@@ -352,4 +412,42 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
 
     // No crash should occur, if we reached here the test passed
     SUCCEED();
+}
+
+TEST_F(MarketDataFeedHandlerTest, SimulatorParserIntegrationTest) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // Create parser for file data
+    auto fileParser = make_unique<FileMarketDataParser>();
+    
+    // Track how many messages we receive
+    atomic<int> messageCount{0};
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        auto parsedMsg = fileParser->parse(rawLine);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+            messageCount++;
+        }
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        queue.push(msg);
+        messageCount++;
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
+    simulator.setReplayMode(ReplayMode::ACCELERATED, 10.0); // Fast playback for testing
+    simulator.start();
+
+    // Let it run for a short time
+    this_thread::sleep_for(chrono::milliseconds(500));
+    simulator.stop();
+
+    // Verify that we received some messages
+    EXPECT_GT(messageCount.load(), 0);
+    
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
 }
