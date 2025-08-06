@@ -47,6 +47,7 @@ jobs:
             --suppress=unusedFunction:tests/tests_simulator.cpp \
             --suppress=unusedFunction:tests/tests_feed_handler.cpp \
             --suppress=unusedFunction:src/parser/MarketDataParserFactory.cpp \
+            --supress=unusedStructMember:tests/tests_parser.cpp \
             --suppress=*:third_party/crow/include/* \
             -I include \
             -I utility \
