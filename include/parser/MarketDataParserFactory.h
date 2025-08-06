@@ -17,5 +17,5 @@ private:
 
 public:
     static void registerParser(const std::string& name, CreatorFunction creator);
-    static std::unique_ptr<MarketDataParser> create(const std::string& name);
+    static std::unique_ptr<MarketDataParser> create(const std::string& name); // cppcheck-suppress unusedFunction
 };
