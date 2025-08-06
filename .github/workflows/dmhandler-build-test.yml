@@ -37,7 +37,7 @@ jobs:
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --quiet --force \
+          cppcheck --enable=all --inconclusive --force \
             --std=c++17 \
             --error-exitcode=1 \
             --suppress=missingIncludeSystem \
