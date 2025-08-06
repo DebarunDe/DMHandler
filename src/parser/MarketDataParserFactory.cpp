@@ -13,6 +13,7 @@ void MarketDataParserFactory::registerParser(const string& name, CreatorFunction
     getRegistry()[name] = creator;
 }
 
+// cppcheck-suppress unusedFunction
 unique_ptr<MarketDataParser> MarketDataParserFactory::create(const string& name) {
     const auto& registry = getRegistry();
 

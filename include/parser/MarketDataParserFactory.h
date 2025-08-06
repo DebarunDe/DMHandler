@@ -16,6 +16,6 @@ private:
     static std::unordered_map<std::string, CreatorFunction>& getRegistry();
 
 public:
-    static void registerParser(const std::string& type, CreatorFunction creator);
+    static void registerParser(const std::string& name, CreatorFunction creator);
     static std::unique_ptr<MarketDataParser> create(const std::string& name);
 };

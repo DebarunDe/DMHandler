@@ -66,8 +66,8 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleSymbols) {
     statsTracker->update(msg1);
     statsTracker->update(msg2);
 
-    auto aaplStats = statsTracker->getStats("AAPL");
-    auto googlStats = statsTracker->getStats("GOOGL");
+    auto aaplStats = subscriber.getStats("AAPL");
+    auto googlStats = subscriber.getStats("GOOGL");
 
     EXPECT_EQ(aaplStats.lastPrice, 150.0);
     EXPECT_EQ(aaplStats.totalVolume, 100);
@@ -80,8 +80,9 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleSymbols) {
 
 TEST(MarketStatsDataSubscriber, HandlesEmptyStats) {
     auto statsTracker = make_shared<MarketDataStatsTracker>();
+    MarketDataStatsSubscriber subscriber(statsTracker);
 
-    auto stats = statsTracker->getStats("AAPL");
+    auto stats = subscriber.getStats("AAPL");
 
     EXPECT_EQ(stats.lastPrice, 0.0);
     EXPECT_EQ(stats.totalVolume, 0);
@@ -114,7 +115,7 @@ TEST(MarketStatsDataSubscriber, UpdatesStatsWithSameSymbol) {
     statsTracker->update(msg1);
     statsTracker->update(msg2);
 
-    auto stats = statsTracker->getStats("AAPL");
+    auto stats = subscriber.getStats("AAPL");
 
     EXPECT_EQ(stats.lastPrice, 155.0);
     EXPECT_EQ(stats.totalVolume, 150);
@@ -137,7 +138,7 @@ TEST(MarketStatsDataSubscriber, HandlesMultipleUpdates) {
         statsTracker->update(msg);
     }
 
-    auto stats = statsTracker->getStats("JPM");
+    auto stats = subscriber.getStats("JPM");
 
     EXPECT_EQ(stats.lastPrice, 159.0);
     EXPECT_EQ(stats.totalVolume, 145);
