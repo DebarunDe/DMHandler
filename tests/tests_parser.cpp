@@ -8,9 +8,10 @@
 
 using namespace std;
 
+// cppcheck-suppress unusedStructMember
 class FileMarketDataParserTest : public ::testing::Test {
 protected:
-    FileMarketDataParser parser; // cppcheck-suppress unusedStructMember
+    FileMarketDataParser parser;
 };
 
 TEST_F(FileMarketDataParserTest, ParsesValidMessage) {
