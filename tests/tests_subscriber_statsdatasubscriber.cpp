@@ -33,7 +33,7 @@ TEST(MarketStatsDataSubscriber, UpdatesStatsCorrectly) {
     statsTracker->update(msg1);
     statsTracker->update(msg2);
 
-    auto stats = statsTracker->getStats("AAPL");
+    auto stats = subscriber.getStats("AAPL");
 
     EXPECT_EQ(stats.lastPrice, 155.0);
     EXPECT_EQ(stats.totalVolume, 150);
