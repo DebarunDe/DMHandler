@@ -1,0 +1,453 @@
+#include <gtest/gtest.h>
+#include "../include/MarketDataFeedHandler.h"
+#include "../include/parser/MarketDataParserRegistry.h"
+#include "../include/parser/FileMarketDataParser.h"
+#include "../include/parser/GeneratedMarketDataParser.h"
+
+#include "../include/testSubscribers/LoggingSubscriber.h"
+#include "../include/testSubscribers/FileLoggerSubscriber.h"
+#include "../include/testSubscribers/MarketStatsDataSubscriber.h"
+#include "../include/rest/MarketDataRestHandler.h"
+
+#include "tests_helper.h"
+
+#include <curl/curl.h>
+#include <memory>
+#include <algorithm>
+#include <vector>
+#include <random>
+#include <regex>
+#include <cmath>
+
+using namespace std;
+
+class MarketDataFeedHandlerTest : public ::testing::Test {
+protected:
+    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    unique_ptr<MarketDataFeedHandler> feedHandler;
+
+    // cppcheck-suppress unusedFunction
+    void SetUp()    override { 
+        registerParsers(); // Register parsers before use
+        feedHandler = make_unique<MarketDataFeedHandler>(queue); 
+        feedHandler->start(); 
+    }
+    // cppcheck-suppress unusedFunction
+    void TearDown() override { 
+        // always stop the feed handler
+        feedHandler->stop(); 
+    } 
+};
+
+TEST_F(MarketDataFeedHandlerTest, SubscribeAndUnsubscribe) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    EXPECT_NO_THROW(feedHandler->subscribe(loggingSubscriber));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber)); // Unsubscribing again should not throw
+    EXPECT_NO_THROW(feedHandler->subscribe(loggingSubscriber)); // Re-subscribing should work
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, nullSubscribeAndUnsubscribe) {
+    auto nullSubscriber = shared_ptr<IMarketDataSubscriber>(nullptr);
+    EXPECT_NO_THROW(feedHandler->subscribe(nullSubscriber));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(nullSubscriber)); // Unsubscribing null should not throw
+    EXPECT_NO_THROW(feedHandler->subscribe(nullSubscriber)); // Re-subscribing null should not throw
+    EXPECT_NO_THROW(feedHandler->unsubscribe(nullSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, DispatchesMessagesToSubscribers) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    MarketDataMessage msg{
+        .symbol = "AAPL",
+        .side = OrderSide::BUY,
+        .price = 150.0,
+        .quantity = 100,
+        .timestamp = chrono::system_clock::now()
+    };
+
+    queue.push(std::move(msg));
+
+    this_thread::sleep_for(100ms); // Allow some time for the message to be processed
+
+    // No assertion here, just checking if it runs without crashing
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, DoesNotCrashOnEmptyQueue) {
+    // Just check that it runs without crashing
+    EXPECT_NO_THROW(feedHandler->start());
+    this_thread::sleep_for(100ms); // Allow some time for the dispatcher to run
+    EXPECT_NO_THROW(feedHandler->stop());
+}
+
+TEST_F(MarketDataFeedHandlerTest, StopsGracefully) {
+    EXPECT_NO_THROW(feedHandler->stop());
+    EXPECT_NO_THROW(feedHandler->start()); // Restarting after stop should not throw
+}
+
+TEST_F(MarketDataFeedHandlerTest, EmptyQueueSubscriberDispatch) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // No messages in the queue, just check that it runs without crashing
+    EXPECT_NO_THROW(feedHandler->start());
+    this_thread::sleep_for(100ms); // Allow some time for the dispatcher to run
+    EXPECT_NO_THROW(feedHandler->stop());
+
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, MultipleSubscribers) {
+    auto loggingSubscriber1 = make_shared<LoggingSubscriber>();
+    auto loggingSubscriber2 = make_shared<LoggingSubscriber>();
+
+    feedHandler->subscribe(loggingSubscriber1);
+    feedHandler->subscribe(loggingSubscriber2);
+
+    MarketDataMessage msg{
+        .symbol = "GOOGL",
+        .side = OrderSide::SELL,
+        .price = 2800.0,
+        .quantity = 50,
+        .timestamp = chrono::system_clock::now()
+    };
+
+    queue.push(std::move(msg));
+
+    this_thread::sleep_for(100ms); // Allow some time for the messages to be processed
+
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber1));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber2));
+}
+
+TEST_F(MarketDataFeedHandlerTest, HandlesConcurrentPushes) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // Push multiple messages concurrently
+    vector<thread> producers;
+    for (int i = 0; i < 10; ++i) {
+        producers.emplace_back([&]() {
+            MarketDataMessage msg{
+                .symbol = "MSFT",
+                .side = OrderSide::BUY,
+                .price = 300.0 + i,
+                .quantity = 10 + i,
+                .timestamp = chrono::system_clock::now()
+            };
+            queue.push(std::move(msg));
+        });
+    }
+
+    for (auto& producer : producers) {
+        producer.join();
+    }
+
+    this_thread::sleep_for(100ms); // Allow some time for the messages to be processed
+
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, HandlesRapidMessageDispatch) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // Rapidly push messages
+    for (int i = 0; i < 100; ++i) {
+        MarketDataMessage msg{
+            .symbol = "AMZN",
+            .side = OrderSide::SELL,
+            .price = 3500.0 + i,
+            .quantity = 5 + i,
+            .timestamp = chrono::system_clock::now()
+        };
+        queue.push(std::move(msg));
+    }
+
+    this_thread::sleep_for(500ms); // Allow some time for the messages to be processed
+
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}
+
+TEST_F(MarketDataFeedHandlerTest, StopsAndStartsMultipleTimes) {
+    for (int i = 0; i < 5; ++i) {
+        EXPECT_NO_THROW(feedHandler->start());
+        this_thread::sleep_for(100ms); // Allow some time for the dispatcher to run
+        EXPECT_NO_THROW(feedHandler->stop());
+    }
+}
+
+TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnCSVModeAndMultipleSubscribers) {
+    auto loggingSubscriber1 = make_shared<LoggingSubscriber>();
+    auto loggingSubscriber2 = make_shared<LoggingSubscriber>();
+
+    feedHandler->subscribe(loggingSubscriber1);
+    feedHandler->subscribe(loggingSubscriber2);
+
+    // Create parser for file data
+    auto fileParser = make_unique<FileMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        auto parsedMsg = fileParser->parse(rawLine);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        queue.push(msg);
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
+    simulator.setReplayMode(ReplayMode::REALTIME);
+    simulator.start();
+
+    this_thread::sleep_for(chrono::seconds(15)); // Let it run for a while
+
+    simulator.stop();
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber1));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber2));
+    EXPECT_NO_THROW(feedHandler->stop());
+}
+
+TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnGeneratedModeAndMultipleSubscribers) {
+    auto loggingSubscriber1 = make_shared<LoggingSubscriber>();
+    auto loggingSubscriber2 = make_shared<LoggingSubscriber>();
+
+    feedHandler->subscribe(loggingSubscriber1);
+    feedHandler->subscribe(loggingSubscriber2);
+
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
+    simulator.setReplayMode(ReplayMode::REALTIME);
+    simulator.start();
+
+    this_thread::sleep_for(chrono::seconds(60)); // Let it run for a while
+
+    simulator.stop();
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber1));
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber2));
+    EXPECT_NO_THROW(feedHandler->stop());
+}
+
+TEST_F(MarketDataFeedHandlerTest, HandlesEarlyStopWithSimulator) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
+    simulator.setReplayMode(ReplayMode::REALTIME);
+    
+    EXPECT_NO_THROW(simulator.start());
+    this_thread::sleep_for(chrono::seconds(5)); // Let it run for a short time
+    EXPECT_NO_THROW(simulator.stop());
+
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+    EXPECT_NO_THROW(feedHandler->stop());
+    EXPECT_NO_THROW(feedHandler->start()); // Restarting after stop should not throw
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+    EXPECT_NO_THROW(feedHandler->stop());
+}
+
+TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
+    // Create file logger subscribers targeting a few shared files
+    vector<string> logPaths = {
+        "tests/testlogs/stress/test_market_data_1.log",
+        "tests/testlogs/stress/test_market_data_2.log",
+        "tests/testlogs/stress/test_market_data_3.log"
+    };
+
+    std::unordered_map<std::string, std::streamoff> initialSizes;
+    for (const auto& path : logPaths) {
+        ifstream file(path, ios::binary | ios::ate);
+        initialSizes[path] = file.is_open()? static_cast<std::streamoff>(file.tellg()) : std::streamoff(0);
+    }
+
+
+    vector<shared_ptr<FileLoggerSubscriber>> fileLoggers;
+    for (size_t i = 0; i < 10; ++i) {
+        auto fileLogger = make_shared<FileLoggerSubscriber>(logPaths[i % logPaths.size()]);
+        fileLogger->start();
+        fileLoggers.push_back(fileLogger);
+        feedHandler->subscribe(fileLogger);
+    }
+
+    // Create multiple TestSubscribers
+    vector<shared_ptr<LoggingSubscriber>> loggingSubscribers;
+    for (int i = 0; i < 10; ++i) {
+        auto sub = make_shared<LoggingSubscriber>();
+        loggingSubscribers.push_back(sub);
+        feedHandler->subscribe(sub);
+    }
+
+    vector<shared_ptr<MarketDataStatsSubscriber>> statsSubscribers;
+    auto statsTracker = make_shared<MarketDataStatsTracker>();
+    for (int i = 0; i < 10; ++i) {
+        auto statsSub = make_shared<MarketDataStatsSubscriber>(statsTracker);
+        statsSubscribers.push_back(statsSub);
+        feedHandler->subscribe(statsSub);
+    }
+
+    // rest api
+    auto restApi = make_unique<MarketDataRestApi>(statsTracker);
+    restApi->start(18080);
+    this_thread::sleep_for(chrono::milliseconds(500));
+
+    // Set up and start simulator
+    // Create parser for generated data
+    auto generatedParser = make_unique<GeneratedMarketDataParser>();
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        // For generated mode, file sink is not used but required by constructor
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        auto parsedMsg = generatedParser->parse(msg);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+        }
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::GENERATED);
+    simulator.setReplayMode(ReplayMode::ACCELERATED, 10.0); // Faster playback
+    simulator.start();
+
+    // Randomly subscribe/unsubscribe some logging subscribers in a background thread
+    atomic<bool> churnActive = true;
+    thread churnThread([&]() {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> actionDist(0, 1);
+        uniform_int_distribution<> indexDist(0, loggingSubscribers.size() - 1);
+
+        while (churnActive) {
+            int idx = indexDist(gen);
+            if (actionDist(gen) == 0) {
+                feedHandler->subscribe(loggingSubscribers[idx]);
+                feedHandler->subscribe(fileLoggers[idx]);
+                feedHandler->subscribe(statsSubscribers[idx]);
+            } else {
+                feedHandler->unsubscribe(loggingSubscribers[idx]);
+                feedHandler->unsubscribe(fileLoggers[idx]);
+                feedHandler->unsubscribe(statsSubscribers[idx]);
+            }
+            this_thread::sleep_for(chrono::milliseconds(30));
+        }
+    });
+
+    // Let system run under stress for a long time
+    this_thread::sleep_for(chrono::seconds(60));
+
+    // Stop simulator, churn thread, and file loggers
+    churnActive = false;
+    churnThread.join();
+    simulator.stop();
+
+    for (auto& fileLogger : fileLoggers) {
+        fileLogger->stop();
+        feedHandler->unsubscribe(fileLogger);
+    }
+
+    for (auto& sub : loggingSubscribers) {
+        feedHandler->unsubscribe(sub);
+    }
+
+    for (auto& statsSub : statsSubscribers) {
+        feedHandler->unsubscribe(statsSub);
+    }
+
+    std::string response = httpGet("http://localhost:18080/stats/AAPL");
+
+    EXPECT_FALSE(response.empty());
+    EXPECT_NE(response.find("averagePrice"), std::string::npos);
+    EXPECT_NE(response.find("lastPrice"), std::string::npos);
+    EXPECT_NE(response.find("lowPrice"), std::string::npos);
+    EXPECT_NE(response.find("highPrice"), std::string::npos);
+
+    if (restApi) {
+        restApi->stop();
+        restApi.reset();
+    }
+
+    for (const auto& path : logPaths) {
+        std::ifstream file(path, std::ios::binary | std::ios::ate);
+        ASSERT_TRUE(file.is_open()) << "Log file " << path << " could not be opened.";
+        auto finalSize = file.tellg();
+        file.close();
+        EXPECT_GT(finalSize, initialSizes[path]) << "Log file " << path << " was not updated during the test.";
+    }
+
+    // No crash should occur, if we reached here the test passed
+    SUCCEED();
+}
+
+TEST_F(MarketDataFeedHandlerTest, SimulatorParserIntegrationTest) {
+    auto loggingSubscriber = make_shared<LoggingSubscriber>();
+    feedHandler->subscribe(loggingSubscriber);
+
+    // Create parser for file data
+    auto fileParser = make_unique<FileMarketDataParser>();
+    
+    // Track how many messages we receive
+    atomic<int> messageCount{0};
+    
+    // Create sink functions that parse and push to queue
+    auto fileSink = [&](const string& rawLine) {
+        auto parsedMsg = fileParser->parse(rawLine);
+        if (parsedMsg.has_value()) {
+            queue.push(parsedMsg.value());
+            messageCount++;
+        }
+    };
+    
+    auto generatedSink = [&](const MarketDataMessage& msg) {
+        queue.push(msg);
+        messageCount++;
+    };
+
+    MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
+    simulator.setReplayMode(ReplayMode::ACCELERATED, 10.0); // Fast playback for testing
+    simulator.start();
+
+    // Let it run for a short time
+    this_thread::sleep_for(chrono::milliseconds(500));
+    simulator.stop();
+
+    // Verify that we received some messages
+    EXPECT_GT(messageCount.load(), 0);
+    
+    EXPECT_NO_THROW(feedHandler->unsubscribe(loggingSubscriber));
+}

@@ -14,29 +14,48 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        with:
+          submodules: recursive
+          
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
 
-      - name: Install clang-tidy and cppcheck
-        run: sudo apt-get install -y clang-tidy cppcheck
+      - name: Install libcurl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
 
       - name: Configure CMake (Debug + Analysis)
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
-        run: clang-tidy -p build $(find ./src ./include ./tests -name '*.cpp')
+        run: clang-tidy -p build $(find ./src ./include ./tests ./utility -name '*.cpp')
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --inconclusive --quiet \
-                   --suppress=missingIncludeSystem \
-                   --std=c++17 \
-                   --suppress=unusedFunction:include/OrderSide.h \
-                   --suppress=unusedFunction:tests/tests_simulator.cpp \
-                   --error-exitcode=1 \
-                   ./include ./src ./tests
-
+          cppcheck --enable=all --inconclusive --force \
+            --std=c++17 \
+            --error-exitcode=1 \
+            --suppress=missingIncludeSystem \
+            --suppress=unmatchedSuppression \
+            --suppress=toomanyconfigs \
+            --suppress=unusedFunction:include/OrderSide.h \
+            --suppress=unusedFunction:tests/tests_simulator.cpp \
+            --suppress=unusedFunction:tests/tests_feed_handler.cpp \
+            --suppress=unusedFunction:src/parser/MarketDataParserFactory.cpp \
+            --suppress=unusedStructMember:tests/tests_parser.cpp \
+            --suppress=*:third_party/crow/include/* \
+            -I include \
+            -I utility \
+            -I third_party/crow/include \
+            -i third_party/crow \
+            -i third_party/asio \
+            ./include ./src ./tests ./utility
+      
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
@@ -49,7 +68,7 @@ jobs:
       - name: Generate Code Coverage Report
         run: |
           lcov --directory build --capture --output-file coverage.info --ignore-errors mismatch
-          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/tests/*' '*/third_party/*' --output-file coverage.info
           genhtml coverage.info --output-directory coverage_report --ignore-errors mismatch
 
       - name: Upload Coverage Report
