@@ -54,6 +54,7 @@ jobs:
             -I third_party/crow/include \
             -i third_party/crow \
             -i third_party/asio \
+            -i third_party/ixwebsocket \
             ./include ./src ./tests ./utility
       
       - name: Configure CMake for Coverage

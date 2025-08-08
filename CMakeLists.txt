@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose Release or Debug" FORCE)
 
+#--------Add third_party libraries--------
+add_subdirectory(third_party/ixwebsocket)
+
 #--------Set Data file--------
 configure_file(data/market_data.csv data/market_data.csv COPYONLY)
 
@@ -40,7 +43,7 @@ find_program(CPPCHECK_EXE NAMES "cppcheck")
 if(CPPCHECK_EXE)
     message(STATUS "Found cppcheck: ${CPPCHECK_EXE}")
     set(CMAKE_CXX_CPPCHECK
-    "${CPPCHECK_EXE};--enable=all;--inconclusive;--quiet;--inline-suppr;--suppress=missingIncludeSystem;--std=c++17;--language=c++"
+    "${CPPCHECK_EXE};--enable=all;--inconclusive;--quiet;--inline-suppr;--suppress=missingIncludeSystem;--std=c++17;--language=c++;--suppress=all:third_party/asio/*;--suppress=all:third_party/crow/*;--suppress=all:third_party/ixwebsocket/*;--suppress=all:*/third_party/*"
     )
 endif()
 
@@ -65,6 +68,7 @@ add_executable(DMHandler
     src/MarketDataFeedHandler.cpp
     src/rest/MarketDataRestHandler.cpp
     src/MarketDataStatsTracker.cpp
+    src/webSocket/IxWebSocketClient.cpp
 )
 
 target_include_directories(DMHandler
@@ -72,12 +76,14 @@ target_include_directories(DMHandler
         ${PROJECT_SOURCE_DIR}/include 
         ${PROJECT_SOURCE_DIR}/third_party/crow/include
         ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
+        ${PROJECT_SOURCE_DIR}/third_party/ixwebsocket
 )   
 
 target_link_libraries(DMHandler
     PRIVATE 
         pthread
         CURL::libcurl
+        ixwebsocket
 )
 
 #------- Unit Tests -------
@@ -140,6 +146,11 @@ add_executable(tests_marketdataresthandler
     src/MarketDataStatsTracker.cpp
 )
 
+add_executable(tests_websocket
+    tests/tests_websocket.cpp
+    src/webSocket/IxWebSocketClient.cpp
+)
+
 target_include_directories(tests_simulator 
     PRIVATE ${PROJECT_SOURCE_DIR}/include 
 )
@@ -161,6 +172,7 @@ target_include_directories(tests_feed_handler
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/third_party/crow/include
         ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
+        ${PROJECT_SOURCE_DIR}/third_party/ixwebsocket
 )
 
 target_include_directories(tests_subscriber_loggingsubscriber
@@ -180,6 +192,13 @@ target_include_directories(tests_marketdataresthandler
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/third_party/crow/include
         ${PROJECT_SOURCE_DIR}/third_party/asio/asio/include
+        ${PROJECT_SOURCE_DIR}/third_party/ixwebsocket
+)
+
+target_include_directories(tests_websocket
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/third_party/ixwebsocket
 )
 
 
@@ -222,6 +241,12 @@ target_link_libraries(tests_marketdataresthandler
     CURL::libcurl
 )
 
+target_link_libraries(tests_websocket
+    gtest_main
+    ixwebsocket
+    pthread
+)
+
 include(GoogleTest)
 gtest_discover_tests(tests_simulator)
 gtest_discover_tests(tests_thread_safe_message_queue)
@@ -234,4 +259,5 @@ gtest_discover_tests(tests_subscriber_loggingsubscriber)
 gtest_discover_tests(tests_subscriber_fileloggersubscriber)
 gtest_discover_tests(tests_subscriber_statsdatasubscriber)
 gtest_discover_tests(tests_marketdataresthandler)
+gtest_discover_tests(tests_websocket)
 #---------------------------------
