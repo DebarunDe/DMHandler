@@ -18,12 +18,10 @@ IxWebSocketClient::IxWebSocketClient(const std::string& url):
         });
 }
 
-IxWebSocketClient::~IxWebSocketClient() { cleanup(); }
-
-void IxWebSocketClient::cleanup() {
-    disconnect();
+IxWebSocketClient::~IxWebSocketClient() { 
+    ws_->stop();
     ws_.reset();
-}
+ }
 
 void IxWebSocketClient::connect() {
     if (isConnected()) return;
