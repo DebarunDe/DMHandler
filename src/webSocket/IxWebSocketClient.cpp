@@ -18,7 +18,7 @@ IxWebSocketClient::IxWebSocketClient(const std::string& url):
         });
 }
 
-IxWebSocketClient::~IxWebSocketClient() { disconnect(); }
+IxWebSocketClient::~IxWebSocketClient() { cleanup(); }
 
 void IxWebSocketClient::cleanup() {
     disconnect();
