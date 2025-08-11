@@ -19,6 +19,7 @@ public:
 
     void connect() override;
     void disconnect() override;
+    void cleanup();
     void send(const std::string& message) override;
 
     void setMessageCallBack(MessageCallBack cb) override;

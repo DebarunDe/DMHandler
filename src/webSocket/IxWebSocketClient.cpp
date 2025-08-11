@@ -20,6 +20,11 @@ IxWebSocketClient::IxWebSocketClient(const std::string& url):
 
 IxWebSocketClient::~IxWebSocketClient() { disconnect(); }
 
+void IxWebSocketClient::cleanup() {
+    disconnect();
+    ws_.reset();
+}
+
 void IxWebSocketClient::connect() {
     if (isConnected()) return;
 
