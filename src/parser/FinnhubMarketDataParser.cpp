@@ -19,6 +19,7 @@ optional<MarketDataMessage> FinnhubMarketDataParser::parse(const std::string& li
                 msg.symbol = t.value("s", string());
                 msg.price = t.value("p", 0.0);
                 msg.quantity = t.value("v", 0);
+                msg.side = OrderSide::UNKNOWN; // Finnhub does not provide side info
 
                 long long epoch = t.value("t", 0ll);
                 if (epoch > 1000000000000ll) { // > ~2001-09-09 in ms
