@@ -16,10 +16,10 @@ FinnhubConnector::FinnhubConnector(
     ThreadSafeMessageQueue<MarketDataMessage>& messageQueue,
     vector<string> symbols
 ):
-    wsClient_(move(wsClient)),
-    parser_(move(parser)),
+    wsClient_(std::move(wsClient)),
+    parser_(std::move(parser)),
     messageQueue_(messageQueue),
-    subscribedSymbols_(move(symbols)),
+    subscribedSymbols_(std::move(symbols)),
     running_(false)
     {
         wsClient_->setMessageCallBack(

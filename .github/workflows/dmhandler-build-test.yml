@@ -54,6 +54,7 @@ jobs:
             -I include \
             -I utility \
             -I third_party/crow/include \
+            -I third_party/json/single_include \
             -i third_party/crow \
             -i third_party/asio \
             -i third_party/ixwebsocket \
