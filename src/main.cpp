@@ -103,7 +103,7 @@ int main() {
     // Main loop — print stats every 5 seconds
     while (!shutdownRequested.load(std::memory_order_relaxed)) {
         this_thread::sleep_for(chrono::seconds(5));
-        for (auto& symbol : feedHandler.getStatsTracker()->getAllSymbols()) {
+        for (const auto& symbol : feedHandler.getStatsTracker()->getAllSymbols()) {
             auto stats = feedHandler.getStatsTracker()->getStats(symbol);
             cout << "[STATS] Symbol: " << symbol
                  << ", Avg Price: " << stats.getAveragePrice()

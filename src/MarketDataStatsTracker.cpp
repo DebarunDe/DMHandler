@@ -25,8 +25,7 @@ std::vector<std::string> MarketDataStatsTracker::getAllSymbols() const {
 
     std::vector<std::string> symbols;
     symbols.reserve(stats_.size());
-    for (const auto& pair : stats_) {
-        symbols.push_back(pair.first);
-    }
+    std::transform(stats_.begin(), stats_.end(), symbols.begin(),
+                   [](const auto& pair) { return pair.first; });
     return symbols;
 }
