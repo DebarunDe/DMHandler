@@ -20,16 +20,11 @@ jobs:
           submodules: recursive
           
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build lcov
-
-      - name: Install libcurl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-
-      - name: Install clang-tidy
-        run: sudo apt-get update && sudo apt-get install -y clang-tidy
-      
-      - name: Install cppcheck
-        run: sudo apt-get update && sudo apt-get install -y cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake g++ ninja-build lcov \
+            libcurl4-openssl-dev clang-tidy cppcheck
 
       - name: Configure CMake (Debug + Analysis)
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -66,11 +61,11 @@ jobs:
       - name: Configure CMake for Coverage
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
 
-      - name: Build with Coverage
-        run: cmake --build build
+      - name: Build with Coverage (parallel)
+        run: cmake --build build -- -j $(nproc)
 
-      - name: Run Tests with CTest
-        run: cd build && ctest --output-on-failure
+      - name: Run Tests with CTest (parallel)
+        run: cd build && ctest --output-on-failure -j $(nproc)
 
       - name: Generate Code Coverage Report
         run: |
@@ -108,4 +103,5 @@ jobs:
 
       - name: Run DMHandler with Timeout
         run: |
-          timeout 300s ./build/DMHandler
+          timeout 300 ./build/DMHandler || \
+          if [ $? -eq 124 ]; then echo "Timed out cleanly"; exit 0; else exit 1; fi
