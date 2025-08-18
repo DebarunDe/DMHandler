@@ -2,6 +2,7 @@
 #include "../../include/parser/MarketDataParserFactory.h"
 #include "../../include/parser/FileMarketDataParser.h"
 #include "../../include/parser/GeneratedMarketDataParser.h"
+#include "../../include/parser/FinnhubMarketDataParser.h"
 
 using namespace std;
 
@@ -14,4 +15,7 @@ void registerParsers() {
         return make_unique<GeneratedMarketDataParser>();
     });
 
+    MarketDataParserFactory::registerParser("finnhub", [] {
+        return make_unique<FinnhubMarketDataParser>();
+    });
 }

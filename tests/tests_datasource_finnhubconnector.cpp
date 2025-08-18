@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F(FinnhubConnectorTest, ConnectsAndSubscribes) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -72,11 +72,11 @@ TEST_F(FinnhubConnectorTest, ConnectsAndSubscribes) {
 
     connector.stop();
 
-    ASSERT_FALSE(queue.empty());
+    ASSERT_FALSE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesMultipleSymbols) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -118,12 +118,12 @@ TEST_F(FinnhubConnectorTest, HandlesMultipleSymbols) {
 
     connector.stop();
 
-    ASSERT_FALSE(queue.empty());
-    ASSERT_GE(queue.size(), 2); // Should have at least 2 messages
+    ASSERT_FALSE(queue->empty());
+    ASSERT_GE(queue->size(), 2); // Should have at least 2 messages
 }
 
 TEST_F(FinnhubConnectorTest, HandlesInvalidMessage) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -169,7 +169,7 @@ TEST_F(FinnhubConnectorTest, HandlesInvalidMessage) {
 }
 
 TEST_F(FinnhubConnectorTest, HandlesConnectionFailure) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -204,11 +204,11 @@ TEST_F(FinnhubConnectorTest, HandlesConnectionFailure) {
 
     connector.stop();
 
-    ASSERT_TRUE(queue.empty()); // No messages should be processed
+    ASSERT_TRUE(queue->empty()); // No messages should be processed
 }
 
 TEST_F(FinnhubConnectorTest, StopsGracefully) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -249,7 +249,7 @@ TEST_F(FinnhubConnectorTest, StopsGracefully) {
 }
 
 TEST_F(FinnhubConnectorTest, HandlesReconnect) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -290,11 +290,11 @@ TEST_F(FinnhubConnectorTest, HandlesReconnect) {
 
     connector.stop();
 
-    ASSERT_FALSE(queue.empty());
+    ASSERT_FALSE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesSubscriptionErrors) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -336,13 +336,13 @@ TEST_F(FinnhubConnectorTest, HandlesSubscriptionErrors) {
     connector.stop();
 
     // Error messages should not result in market data
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 
 // New extended tests
 
 TEST_F(FinnhubConnectorTest, HandlesEmptySymbolsList) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -378,11 +378,11 @@ TEST_F(FinnhubConnectorTest, HandlesEmptySymbolsList) {
     
     connector.stop();
 
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesDuplicateSymbols) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -418,11 +418,11 @@ TEST_F(FinnhubConnectorTest, HandlesDuplicateSymbols) {
     
     connector.stop();
 
-    ASSERT_TRUE(queue.empty()); // No market data messages
+    ASSERT_TRUE(queue->empty()); // No market data messages
 }
 
 TEST_F(FinnhubConnectorTest, HandlesMalformedJsonMessage) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -464,11 +464,11 @@ TEST_F(FinnhubConnectorTest, HandlesMalformedJsonMessage) {
     connector.stop();
 
     // Malformed JSON should not crash the system
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesNullParser) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     std::unique_ptr<FinnhubMarketDataParser> parser = nullptr;
 
@@ -510,11 +510,11 @@ TEST_F(FinnhubConnectorTest, HandlesNullParser) {
     connector.stop();
 
     // Should not crash with null parser
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesRapidStartStop) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -549,11 +549,11 @@ TEST_F(FinnhubConnectorTest, HandlesRapidStartStop) {
         connector.stop();
     }
 
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 
 TEST_F(FinnhubConnectorTest, HandlesLargeNumberOfSymbols) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -594,11 +594,11 @@ TEST_F(FinnhubConnectorTest, HandlesLargeNumberOfSymbols) {
     
     connector.stop();
 
-    ASSERT_TRUE(queue.empty()); // No market data messages
+    ASSERT_TRUE(queue->empty()); // No market data messages
 }
 
 TEST_F(FinnhubConnectorTest, HandlesWebSocketClientDisconnection) {
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    auto queue = std::make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
     auto mockWsClient = std::make_unique<MockWebSocketClient>();
     auto parser = std::make_unique<FinnhubMarketDataParser>();
 
@@ -633,6 +633,6 @@ TEST_F(FinnhubConnectorTest, HandlesWebSocketClientDisconnection) {
     
     connector.stop();
 
-    ASSERT_TRUE(queue.empty());
+    ASSERT_TRUE(queue->empty());
 }
 

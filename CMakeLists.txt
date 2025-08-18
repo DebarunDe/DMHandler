@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose Release or Debug" FORCE)
 
 #--------Add third_party libraries--------
+set(USE_TLS ON CACHE BOOL "Enable TLS for ixwebsocket")
 add_subdirectory(third_party/ixwebsocket)
 
 #--------Add JSON library--------
@@ -67,6 +68,7 @@ add_executable(DMHandler
     src/MarketDataGenerator.cpp
     src/parser/FileMarketDataParser.cpp
     src/parser/GeneratedMarketDataParser.cpp
+    src/parser/FinnhubMarketDataParser.cpp
     src/parser/MarketDataParserFactory.cpp
     src/parser/MarketDataParserRegistry.cpp
     src/MarketDataFeedHandler.cpp
@@ -98,6 +100,7 @@ add_executable(tests_simulator
     src/MarketDataGenerator.cpp
     src/parser/FileMarketDataParser.cpp
     src/parser/GeneratedMarketDataParser.cpp
+    src/parser/FinnhubMarketDataParser.cpp
     src/parser/MarketDataParserFactory.cpp
     src/parser/MarketDataParserRegistry.cpp
 )
@@ -115,6 +118,7 @@ add_executable(tests_parser
     tests/tests_parser.cpp
     src/parser/FileMarketDataParser.cpp
     src/parser/GeneratedMarketDataParser.cpp
+    src/parser/FinnhubMarketDataParser.cpp
     src/parser/MarketDataParserFactory.cpp
     src/parser/MarketDataParserRegistry.cpp
 )
@@ -126,6 +130,7 @@ add_executable(tests_feed_handler
     src/MarketDataGenerator.cpp
     src/parser/FileMarketDataParser.cpp
     src/parser/GeneratedMarketDataParser.cpp
+    src/parser/FinnhubMarketDataParser.cpp
     src/parser/MarketDataParserFactory.cpp
     src/parser/MarketDataParserRegistry.cpp
     src/rest/MarketDataRestHandler.cpp
@@ -160,6 +165,7 @@ add_executable(tests_datasource_finnhubconnector
     tests/tests_datasource_finnhubconnector.cpp
     src/dataSource/FinnhubConnector.cpp
     src/parser/GeneratedMarketDataParser.cpp
+    src/parser/FinnhubMarketDataParser.cpp
     src/parser/MarketDataParserFactory.cpp
     src/parser/MarketDataParserRegistry.cpp
     src/parser/FileMarketDataParser.cpp

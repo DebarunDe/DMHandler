@@ -27,6 +27,7 @@ void IxWebSocketClient::connect() {
     if (isConnected()) return;
 
     ws_->start();
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // Give some time for connection to establish
     // Wait until connected or timeout
     int attempts = 0;
     while (!isConnected() && attempts < 50) {
@@ -38,7 +39,7 @@ void IxWebSocketClient::connect() {
 }
 
 void IxWebSocketClient::disconnect() {
-    if (isConnected()) ws_->stop();
+    ws_->stop();
 }
 
 void IxWebSocketClient::send(const std::string& message) {

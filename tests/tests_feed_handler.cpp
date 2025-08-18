@@ -23,12 +23,13 @@ using namespace std;
 
 class MarketDataFeedHandlerTest : public ::testing::Test {
 protected:
-    ThreadSafeMessageQueue<MarketDataMessage> queue;
+    shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> queue;
     unique_ptr<MarketDataFeedHandler> feedHandler;
 
     // cppcheck-suppress unusedFunction
     void SetUp()    override { 
         registerParsers(); // Register parsers before use
+        queue = make_shared<ThreadSafeMessageQueue<MarketDataMessage>>();
         feedHandler = make_unique<MarketDataFeedHandler>(queue); 
         feedHandler->start(); 
     }
@@ -68,7 +69,7 @@ TEST_F(MarketDataFeedHandlerTest, DispatchesMessagesToSubscribers) {
         .timestamp = chrono::system_clock::now()
     };
 
-    queue.push(std::move(msg));
+    queue->push(std::move(msg));
 
     this_thread::sleep_for(100ms); // Allow some time for the message to be processed
 
@@ -115,7 +116,7 @@ TEST_F(MarketDataFeedHandlerTest, MultipleSubscribers) {
         .timestamp = chrono::system_clock::now()
     };
 
-    queue.push(std::move(msg));
+    queue->push(std::move(msg));
 
     this_thread::sleep_for(100ms); // Allow some time for the messages to be processed
 
@@ -138,7 +139,7 @@ TEST_F(MarketDataFeedHandlerTest, HandlesConcurrentPushes) {
                 .quantity = 10 + i,
                 .timestamp = chrono::system_clock::now()
             };
-            queue.push(std::move(msg));
+            queue->push(std::move(msg));
         });
     }
 
@@ -164,7 +165,7 @@ TEST_F(MarketDataFeedHandlerTest, HandlesRapidMessageDispatch) {
             .quantity = 5 + i,
             .timestamp = chrono::system_clock::now()
         };
-        queue.push(std::move(msg));
+        queue->push(std::move(msg));
     }
 
     this_thread::sleep_for(500ms); // Allow some time for the messages to be processed
@@ -194,12 +195,12 @@ TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnCSVModeAndMultipleSub
     auto fileSink = [&](const string& rawLine) {
         auto parsedMsg = fileParser->parse(rawLine);
         if (parsedMsg.has_value()) {
-            queue.push(parsedMsg.value());
+            queue->push(parsedMsg.value());
         }
     };
     
     auto generatedSink = [&](const MarketDataMessage& msg) {
-        queue.push(msg);
+        queue->push(msg);
     };
 
     MarketDataSimulator simulator(fileSink, generatedSink, SourceType::FILE);
@@ -232,7 +233,7 @@ TEST_F(MarketDataFeedHandlerTest, StressTestWithSimulatorOnGeneratedModeAndMulti
     auto generatedSink = [&](const MarketDataMessage& msg) {
         auto parsedMsg = generatedParser->parse(msg);
         if (parsedMsg.has_value()) {
-            queue.push(parsedMsg.value());
+            queue->push(parsedMsg.value());
         }
     };
 
@@ -263,7 +264,7 @@ TEST_F(MarketDataFeedHandlerTest, HandlesEarlyStopWithSimulator) {
     auto generatedSink = [&](const MarketDataMessage& msg) {
         auto parsedMsg = generatedParser->parse(msg);
         if (parsedMsg.has_value()) {
-            queue.push(parsedMsg.value());
+            queue->push(parsedMsg.value());
         }
     };
 
@@ -337,7 +338,7 @@ TEST_F(MarketDataFeedHandlerTest, RealWorldEsqueStressTest) {
     auto generatedSink = [&](const MarketDataMessage& msg) {
         auto parsedMsg = generatedParser->parse(msg);
         if (parsedMsg.has_value()) {
-            queue.push(parsedMsg.value());
+            queue->push(parsedMsg.value());
         }
     };
 
@@ -428,13 +429,13 @@ TEST_F(MarketDataFeedHandlerTest, SimulatorParserIntegrationTest) {
     auto fileSink = [&](const string& rawLine) {
         auto parsedMsg = fileParser->parse(rawLine);
         if (parsedMsg.has_value()) {
-            queue.push(parsedMsg.value());
+            queue->push(parsedMsg.value());
             messageCount++;
         }
     };
     
     auto generatedSink = [&](const MarketDataMessage& msg) {
-        queue.push(msg);
+        queue->push(msg);
         messageCount++;
     };
 

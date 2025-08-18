@@ -6,6 +6,7 @@
 #include <mutex>
 #include <algorithm>
 #include <memory>
+#include <chrono>
 
 struct SymbolStats {
     double lastPrice = 0.00;
@@ -14,6 +15,7 @@ struct SymbolStats {
     double highPrice = std::numeric_limits<double>::lowest();
     double lowPrice = std::numeric_limits<double>::max();
     double totalNotional = 0.00;
+    std::chrono::system_clock::time_point lastUpdateTime = std::chrono::system_clock::now();
 
     void update(const MarketDataMessage& message) {
         lastPrice = message.price;
@@ -22,6 +24,7 @@ struct SymbolStats {
         highPrice = std::max(highPrice, message.price);
         lowPrice = std::min(lowPrice, message.price);
         totalNotional += message.price * message.quantity;
+        lastUpdateTime = message.timestamp;
     }
 
     double getAveragePrice() const {

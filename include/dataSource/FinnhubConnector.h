@@ -17,7 +17,7 @@ class FinnhubConnector {
 private:
     std::unique_ptr<IxWebSocketClient> wsClient_;
     std::unique_ptr<FinnhubMarketDataParser> parser_;
-    ThreadSafeMessageQueue<MarketDataMessage>& messageQueue_;
+    std::shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue_;
     mutable std::mutex subscribedSymbolsMutex_;
     std::vector<std::string> subscribedSymbols_;
     std::thread workerThread_;
@@ -34,7 +34,7 @@ public:
     FinnhubConnector(
         std::unique_ptr<IxWebSocketClient> wsClient, 
         std::unique_ptr<FinnhubMarketDataParser> parser, 
-        ThreadSafeMessageQueue<MarketDataMessage>& messageQueue, 
+        std::shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue, 
         std::vector<std::string> symbols = {}
     );
 

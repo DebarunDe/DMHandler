@@ -13,7 +13,7 @@ using json = nlohmann::json;
 FinnhubConnector::FinnhubConnector(
     unique_ptr<IxWebSocketClient> wsClient,
     unique_ptr<FinnhubMarketDataParser> parser,
-    ThreadSafeMessageQueue<MarketDataMessage>& messageQueue,
+    shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue,
     vector<string> symbols
 ):
     wsClient_(std::move(wsClient)),
@@ -22,6 +22,7 @@ FinnhubConnector::FinnhubConnector(
     subscribedSymbols_(std::move(symbols)),
     running_(false)
     {
+        cout << "[INFO] FinnhubConnector initialized.\n";
         wsClient_->setMessageCallBack(
             [this](const string& message) {
                 onMessageReceived(message);
@@ -121,6 +122,8 @@ void FinnhubConnector::sendSubscribe(const string& symbol) {
 }
 
 void FinnhubConnector::onMessageReceived(const string& message) {
+    if (!running_ || teardownRequested_) return;  // ignore messages after shutdown
+    
     if (!parser_) {
         cerr << "[ERROR] Market data parser is not initialized.\n";
         return;
@@ -128,7 +131,11 @@ void FinnhubConnector::onMessageReceived(const string& message) {
 
     try {
         auto parsedMessage = parser_->parse(message);
-        if (parsedMessage.has_value()) messageQueue_.push(parsedMessage.value());
+        if (!parsedMessage.has_value()) {
+            cerr << "[ERROR] Failed to parse message: " << message << "\n";
+            return;
+        }
+        if (parsedMessage.has_value()) messageQueue_->push(parsedMessage.value());
     } catch (const exception& e) {
         cerr << "[ERROR] Failed to parse message: " << e.what() << "raw: " << message << "\n";
     }
@@ -139,6 +146,11 @@ void FinnhubConnector::ingestLoop() {
     chrono::milliseconds wait = baseWait;
 
     while (running_) {
+        if (teardownRequested_) {
+            cout << "[INFO] Teardown requested, stopping ingestion loop.\n";
+            break;
+        }
+        
         tryConnect();
 
         if (wsClient_ && wsClient_->isConnected()) {
@@ -146,11 +158,6 @@ void FinnhubConnector::ingestLoop() {
 
             this_thread::sleep_for(100ms);
             continue;
-        }
-
-        if (teardownRequested_) {
-            cout << "[INFO] Teardown requested, stopping ingestion loop.\n";
-            break;
         }
 
         cout << "[INFO] WebSocket not connected, retrying in " << wait.count() << " ms...\n";
