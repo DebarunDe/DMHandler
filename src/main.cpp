@@ -124,9 +124,9 @@ int main() {
     feedHandler.stop();
     fileLogger->stop();
 
-    feedHandler.unsubscribe(loggingSub);
-    feedHandler.unsubscribe(fileLogger);
-    feedHandler.unsubscribe(statsSub);
+    // feedHandler.unsubscribe(loggingSub);
+    // feedHandler.unsubscribe(fileLogger);
+    // feedHandler.unsubscribe(statsSub);
 
     cout << "[INFO] Shutdown complete.\n";
     return 0;
