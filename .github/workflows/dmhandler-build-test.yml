@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '20 9 * * *' 
+    - cron: '40 11 * * *' 
 
 jobs:
   build:
@@ -110,5 +110,5 @@ jobs:
 
       - name: Run DMHandler with Timeout
         run: |
-          timeout 24000 ./build/DMHandler || \
+          timeout 14400 ./build/DMHandler || \
           if [ $? -eq 124 ]; then echo "Timed out cleanly"; exit 0; else exit 1; fi
