@@ -80,7 +80,7 @@ int main() {
     // feedHandler.subscribe(fileLogger);
     // feedHandler.subscribe(statsSub);
 
-    fileLogger->start();
+    // fileLogger->start();
     feedHandler.start();
 
     // Start REST API server
@@ -122,7 +122,7 @@ int main() {
     finnhubDataSource.stop();
     restApi->stop();
     feedHandler.stop();
-    fileLogger->stop();
+    // fileLogger->stop();
 
     // feedHandler.unsubscribe(loggingSub);
     // feedHandler.unsubscribe(fileLogger);
