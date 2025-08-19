@@ -131,10 +131,7 @@ void FinnhubConnector::onMessageReceived(const string& message) {
 
     try {
         auto parsedMessage = parser_->parse(message);
-        if (!parsedMessage.has_value()) {
-            cerr << "[ERROR] Failed to parse message: " << message << "\n";
-            return;
-        }
+        if (!parsedMessage.has_value()) return;
         if (parsedMessage.has_value()) messageQueue_->push(parsedMessage.value());
     } catch (const exception& e) {
         cerr << "[ERROR] Failed to parse message: " << e.what() << "raw: " << message << "\n";

@@ -100,9 +100,9 @@ int main() {
 
     finnhubDataSource.start();
 
-    // Main loop — print stats every 5 seconds
+    // Main loop — print stats every 1 minute
     while (!shutdownRequested.load(std::memory_order_relaxed)) {
-        this_thread::sleep_for(chrono::seconds(5));
+        this_thread::sleep_for(chrono::seconds(60));
         for (const auto& symbol : feedHandler.getStatsTracker()->getAllSymbols()) {
             auto stats = feedHandler.getStatsTracker()->getStats(symbol);
             cout << "[STATS] Symbol: " << symbol
