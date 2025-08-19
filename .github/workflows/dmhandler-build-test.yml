@@ -70,6 +70,21 @@ jobs:
 
       - name: Build with Coverage
         run: cmake --build build
+      
+      - name: Build with AddressSanitizer
+        run: |
+          cmake -S . -B build-asan -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+          cmake --build build-asan -- -j $(nproc)
+
+      - name: Run DMHandler with ASan (short)
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: |
+          ASAN_OPTIONS=abort_on_error=1:symbolize=1 LSAN_OPTIONS=suppressions=/dev/null \
+          timeout 60 ./build-asan/DMHandler
 
       - name: Run Tests with CTest
         run: cd build && ctest --output-on-failure
