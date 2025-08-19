@@ -1,13 +1,12 @@
 name: DMHandler CI
 
 on:
+  workflow_dispatch: {} # Manual trigger
   push:
     paths-ignore:
       - 'infrastructure/**'   # skip build if only infra changes
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '40 11 * * *' 
 
 jobs:
   build:
@@ -125,5 +124,5 @@ jobs:
 
       - name: Run DMHandler with Timeout
         run: |
-          timeout 14400 ./build/DMHandler || \
+          timeout 12000 ./build/DMHandler || \
           if [ $? -eq 124 ]; then echo "Timed out cleanly"; exit 0; else exit 1; fi

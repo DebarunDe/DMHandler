@@ -72,15 +72,15 @@ int main() {
     MarketDataFeedHandler feedHandler(queue);
 
     // Setup subscribers
-    // auto loggingSub = make_shared<LoggingSubscriber>();
-    // auto fileLogger = make_shared<FileLoggerSubscriber>("logs/main_feed.log");
-    // auto statsSub = make_shared<MarketDataStatsSubscriber>(feedHandler.getStatsTracker());
+    auto loggingSub = make_shared<LoggingSubscriber>();
+    auto fileLogger = make_shared<FileLoggerSubscriber>("logs/main_feed.log");
+    auto statsSub = make_shared<MarketDataStatsSubscriber>(feedHandler.getStatsTracker());
 
-    // feedHandler.subscribe(loggingSub);
-    // feedHandler.subscribe(fileLogger);
-    // feedHandler.subscribe(statsSub);
+    feedHandler.subscribe(loggingSub);
+    feedHandler.subscribe(fileLogger);
+    feedHandler.subscribe(statsSub);
 
-    // fileLogger->start();
+    fileLogger->start();
     feedHandler.start();
 
     // Start REST API server
@@ -122,11 +122,11 @@ int main() {
     finnhubDataSource.stop();
     restApi->stop();
     feedHandler.stop();
-    // fileLogger->stop();
+    fileLogger->stop();
 
-    // feedHandler.unsubscribe(loggingSub);
-    // feedHandler.unsubscribe(fileLogger);
-    // feedHandler.unsubscribe(statsSub);
+    feedHandler.unsubscribe(loggingSub);
+    feedHandler.unsubscribe(fileLogger);
+    feedHandler.unsubscribe(statsSub);
 
     cout << "[INFO] Shutdown complete.\n";
     return 0;
