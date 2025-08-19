@@ -72,13 +72,13 @@ int main() {
     MarketDataFeedHandler feedHandler(queue);
 
     // Setup subscribers
-    auto loggingSub = make_shared<LoggingSubscriber>();
-    auto fileLogger = make_shared<FileLoggerSubscriber>("logs/main_feed.log");
-    auto statsSub = make_shared<MarketDataStatsSubscriber>(feedHandler.getStatsTracker());
+    // auto loggingSub = make_shared<LoggingSubscriber>();
+    // auto fileLogger = make_shared<FileLoggerSubscriber>("logs/main_feed.log");
+    // auto statsSub = make_shared<MarketDataStatsSubscriber>(feedHandler.getStatsTracker());
 
-    feedHandler.subscribe(loggingSub);
-    feedHandler.subscribe(fileLogger);
-    feedHandler.subscribe(statsSub);
+    // feedHandler.subscribe(loggingSub);
+    // feedHandler.subscribe(fileLogger);
+    // feedHandler.subscribe(statsSub);
 
     fileLogger->start();
     feedHandler.start();
