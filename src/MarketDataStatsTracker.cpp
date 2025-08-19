@@ -24,7 +24,7 @@ std::vector<std::string> MarketDataStatsTracker::getAllSymbols() const {
     std::lock_guard<std::mutex> lock(statsMutex_);
 
     std::vector<std::string> symbols;
-    symbols.reserve(stats_.size());
+    symbols.resize(stats_.size());
     std::transform(stats_.begin(), stats_.end(), symbols.begin(),
                    [](const auto& pair) { return pair.first; });
     return symbols;
