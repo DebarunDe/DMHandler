@@ -141,9 +141,8 @@ The `infrastructure` folder contains scripts and configurations for deploying th
 ---
 
 ## Status
-![Build Status](https://github.com/your-repo/actions/workflows/dmhandler-build-test.yml/dmhandler-build-test.svg)
-![Infra Status](https://github.com/your-repo/actions/workflows/dmhandler-deploy-infrastructure.yml/dmhandler-deploy-infrastructure.svg)
-
+[![DMHandler CI](https://github.com/DebarunDe/DMHandler/actions/workflows/dmhandler-build-test.yml/badge.svg)](https://github.com/DebarunDe/DMHandler/actions/workflows/dmhandler-build-test.yml)
+[![DMHandler Deploy Infrastructure](https://github.com/DebarunDe/DMHandler/actions/workflows/dmhandler-deploy-infrastructure.yml/badge.svg)](https://github.com/DebarunDe/DMHandler/actions/workflows/dmhandler-deploy-infrastructure.yml)
 ---
 
 ## How to Build and Run
