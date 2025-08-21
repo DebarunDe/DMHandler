@@ -20,7 +20,7 @@
 
 class MarketDataFeedHandler {
 private:
-    ThreadSafeMessageQueue<MarketDataMessage>& messageQueue_;
+    std::shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue_;
     std::shared_ptr<MarketDataStatsTracker> statsTracker_;
 
     std::vector<std::shared_ptr<IMarketDataSubscriber>> subscribers_;
@@ -32,8 +32,10 @@ private:
     void dispatchLoop();
 
 public:
-    explicit MarketDataFeedHandler(ThreadSafeMessageQueue<MarketDataMessage>& messageQueue);
+    explicit MarketDataFeedHandler(std::shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue);
     ~MarketDataFeedHandler();
+
+    const std::shared_ptr<MarketDataStatsTracker>& getStatsTracker() const;
 
     void subscribe(std::shared_ptr<IMarketDataSubscriber> subscriber);
     void unsubscribe(std::shared_ptr<IMarketDataSubscriber> subscriber);

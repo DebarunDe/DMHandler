@@ -5,7 +5,7 @@
 
 using namespace std;
 
-MarketDataFeedHandler::MarketDataFeedHandler(ThreadSafeMessageQueue<MarketDataMessage>& messageQueue):
+MarketDataFeedHandler::MarketDataFeedHandler(shared_ptr<ThreadSafeMessageQueue<MarketDataMessage>> messageQueue):
     messageQueue_(messageQueue),
     statsTracker_(make_shared<MarketDataStatsTracker>()),
     running_(false)
@@ -13,6 +13,10 @@ MarketDataFeedHandler::MarketDataFeedHandler(ThreadSafeMessageQueue<MarketDataMe
 
 MarketDataFeedHandler::~MarketDataFeedHandler() {
     stop();
+}
+
+const shared_ptr<MarketDataStatsTracker>& MarketDataFeedHandler::getStatsTracker() const {
+    return statsTracker_;
 }
 
 void MarketDataFeedHandler::subscribe(shared_ptr<IMarketDataSubscriber> subscriber) {
@@ -42,7 +46,7 @@ void MarketDataFeedHandler::dispatchLoop() {
     while (running_) {
         MarketDataMessage msg;
 
-        if (messageQueue_.tryPop(msg)) {
+        if (messageQueue_->tryPop(msg)) {
             lock_guard<mutex> lock(subscriberMutex_);
             statsTracker_->update(msg);
             for (const auto& sub : subscribers_) {

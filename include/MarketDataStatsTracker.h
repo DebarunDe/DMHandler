@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <vector>
 
 class MarketDataStatsTracker {
     private:
@@ -18,4 +19,5 @@ class MarketDataStatsTracker {
         void update(const MarketDataMessage& message);
     
         SymbolStats getStats(const std::string& symbol) const;
+        std::vector<std::string> getAllSymbols() const;
     };
